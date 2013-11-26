@@ -71,7 +71,7 @@ twitter: @limneos
 Licence
 -----------
 
-classdump-dyld is Copyright (c) 2013 Elias Limneos, licensed under GPLv3.
+classdump-dyld is free of use, Copyright (c) 2013 Elias Limneos, licensed under GPLv3.
 
 
 Environment
