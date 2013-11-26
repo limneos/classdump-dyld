@@ -1,0 +1,8 @@
+___CFStringEncodingGetJapaneseConverterDefinition
+___stack_chk_fail
+___stack_chk_guard
+_memcpy
+_strlen
+_strncmp
+_strncpy
+dyld_stub_binder

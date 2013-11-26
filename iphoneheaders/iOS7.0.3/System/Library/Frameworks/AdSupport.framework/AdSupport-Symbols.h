@@ -1,0 +1,14 @@
+_OBJC_CLASS_$_ASIdentifierManager
+_OBJC_METACLASS_$_ASIdentifierManager
+_MCFeatureLimitAdTrackingForced
+_OBJC_CLASS_$_LSApplicationWorkspace
+_OBJC_CLASS_$_MCProfileConnection
+_OBJC_CLASS_$_NSObject
+_OBJC_METACLASS_$_NSObject
+__objc_empty_cache
+__objc_empty_vtable
+_objc_autoreleaseReturnValue
+_objc_msgSend
+_objc_release
+_objc_retainAutoreleasedReturnValue
+dyld_stub_binder

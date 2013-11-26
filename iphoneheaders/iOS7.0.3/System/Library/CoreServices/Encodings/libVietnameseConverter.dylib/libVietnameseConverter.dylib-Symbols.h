@@ -1,0 +1,2 @@
+___CFStringEncodingGetVietnameseConverterDefinition
+dyld_stub_binder
