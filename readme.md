@@ -20,7 +20,7 @@ Features and options:
 
 You can find a recursive sample output on this project under iphoneheaders. 
 
-An upgrade from my last class-dumping project, weak_classdump.
+
 
 -------------------------------
 
@@ -71,12 +71,12 @@ twitter: @limneos
 Licence
 -----------
 
-classdump-dyld is Copyright (c) 2013 Elias Limneos, licensed under GPLv3.
+classdump-dyld is free of use, Copyright (c) 2013 Elias Limneos, licensed under GPLv3.
 
 
 Environment
 -----------
-classdump-dyld works in a command line shell on any iOS 5+ device. Tested from iOS5 to iOS7.
+classdump-dyld works in a command line shell on any iOS 5+ device. Tested from iOS 5.x to iOS 7.x.
 There is Mac version too, but its still under tests.
 
 
