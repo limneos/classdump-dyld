@@ -20,7 +20,7 @@ Features and options:
 
 You can find a recursive sample output on this project under iphoneheaders. 
 
-An upgrade from my last class-dumping project, weak_classdump.
+
 
 -------------------------------
 
