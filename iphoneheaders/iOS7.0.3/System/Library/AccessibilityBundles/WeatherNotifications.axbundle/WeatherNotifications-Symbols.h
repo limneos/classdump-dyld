@@ -1,0 +1,29 @@
++[AXWeatherNotificationsGlue accessibilityInitializeBundle]
+___59+[AXWeatherNotificationsGlue accessibilityInitializeBundle]_block_invoke
+___59+[AXWeatherNotificationsGlue accessibilityInitializeBundle]_block_invoke_2
+___59+[AXWeatherNotificationsGlue accessibilityInitializeBundle]_block_invoke_3
+_dispatch_once$shim
+ stub helpers
+___block_descriptor_tmp
+___block_literal_global
+___block_descriptor_tmp4
+___block_literal_global5
+___block_descriptor_tmp9
+___block_literal_global10
++[AXWeatherNotificationsGlue accessibilityInitializeBundle].onceToken
+_MaxIconIndex
+_MoonIconIndex
+_MoonWithCloudsIndex
+_OBJC_CLASS_$_AXWeatherNotificationsGlue
+_OBJC_METACLASS_$_AXWeatherNotificationsGlue
+_AXPerformValidationChecks
+_OBJC_CLASS_$_AXValidationManager
+_OBJC_CLASS_$_NSObject
+_OBJC_METACLASS_$_NSObject
+__NSConcreteGlobalBlock
+___CFConstantStringClassReference
+__objc_empty_cache
+__objc_empty_vtable
+_dispatch_once
+_objc_msgSend
+dyld_stub_binder

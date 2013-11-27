@@ -1,0 +1,10 @@
+radr://5614542
+__mh_execute_header
+_CFRunLoopRun
+_CoreCaptureStart
+_CoreCaptureStop
+_exit
+_signal
+_vproc_transaction_begin
+_vproc_transaction_end
+dyld_stub_binder

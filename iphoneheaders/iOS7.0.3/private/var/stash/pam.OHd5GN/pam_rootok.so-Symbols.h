@@ -1,0 +1,13 @@
+__mh_bundle_header
+dyld_stub_binding_helper
+__dyld_func_lookup
+__pam_log
+__pam_parse
+dyld__mach_header
+_pam_sm_authenticate
+_pam_sm_setcred
+_closelog
+_getuid
+_openlog
+_strcmp
+_vsyslog

@@ -1,0 +1,16 @@
+radr://5614542
+_NXArgc
+_NXArgv
+___progname
+__mh_execute_header
+_dyld_all_image_infos
+_environ
+_main
+start
+__dyld_get_all_image_infos
+_exit
+_printf
+_puts
+_strcmp
+_strncmp
+dyld_stub_binder

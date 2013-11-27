@@ -1,0 +1,14 @@
+__mh_bundle_header
+dyld_stub_binding_helper
+__dyld_func_lookup
+dyld__mach_header
+_pam_sm_authenticate
+_pam_sm_setcred
+_free
+_fstat
+_getpwnam
+_malloc
+_open
+_pam_get_item
+_pam_get_user
+_read

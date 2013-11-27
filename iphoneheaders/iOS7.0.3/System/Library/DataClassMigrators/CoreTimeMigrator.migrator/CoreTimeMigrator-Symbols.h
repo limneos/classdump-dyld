@@ -1,0 +1,17 @@
+radr://5614542
+_CoreTimeMigratorVersionNumber
+_CoreTimeMigratorVersionString
+_OBJC_CLASS_$_TMDataMigrator
+_OBJC_METACLASS_$_TMDataMigrator
+_CFPreferencesAppSynchronize
+_CFPreferencesGetAppBooleanValue
+_CFPreferencesSetAppValue
+_OBJC_CLASS_$_DataClassMigrator
+_OBJC_METACLASS_$_DataClassMigrator
+_OBJC_METACLASS_$_NSObject
+_TMSetAutomaticTimeEnabled
+_TMSetAutomaticTimeZoneEnabled
+___CFConstantStringClassReference
+__objc_empty_cache
+__objc_empty_vtable
+dyld_stub_binder

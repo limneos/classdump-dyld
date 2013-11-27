@@ -1,0 +1,7 @@
+radr://5614542
+__mh_execute_header
+_OBJC_CLASS_$_NSAutoreleasePool
+_UIApplicationMain
+_exit
+_objc_msgSend
+dyld_stub_binder

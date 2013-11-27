@@ -1,0 +1,725 @@
++[ZOTWorkspace workspace]
++[ZOTWorkspace initialize]
++[ZOTWorkspace enableZoom]
++[ZOTWorkspace disableZoom]
+-[ZOTWorkspace init]
+-[ZOTWorkspace _installSafeCategories]
+___38-[ZOTWorkspace _installSafeCategories]_block_invoke
+-[ZOTWorkspace _performValidationChecks]
+-[ZOTWorkspace setTouchToSpeakModeEnabled:]
+-[ZOTWorkspace _registerWithAggregateDictionary]
+-[ZOTWorkspace _initializeZoom]
+__appTransitionOccurred
+__touchToSpeakChanged
+__smoothScalingDisabledChanged
+__voiceOverEnabled
+-[ZOTWorkspace dealloc]
+-[ZOTWorkspace eventFactory]
+-[ZOTWorkspace _updateSmoothScalingSetting]
+-[ZOTWorkspace _setCaptureEvents:]
+___34-[ZOTWorkspace _setCaptureEvents:]_block_invoke
+-[ZOTWorkspace _voiceOverEnabled]
+-[ZOTWorkspace zoomEnabled]
+-[ZOTWorkspace _delayedHandleApplicationActivated]
+-[ZOTWorkspace _updateDeviceOrientationOffMainThread]
+-[ZOTWorkspace _setZoomEnabled:]
+___32-[ZOTWorkspace _setZoomEnabled:]_block_invoke
+___32-[ZOTWorkspace _setZoomEnabled:]_block_invoke_2
+___copy_helper_block_
+___destroy_helper_block_
+___32-[ZOTWorkspace _setZoomEnabled:]_block_invoke117
+___copy_helper_block_118
+___destroy_helper_block_119
+___copy_helper_block_124
+___destroy_helper_block_125
+-[ZOTWorkspace sendUserEventToSpringBoard]
+-[ZOTWorkspace _handleApplicationDeactivated]
+-[ZOTWorkspace _handleApplicationActivated]
+-[ZOTWorkspace zoomIn]
+-[ZOTWorkspace zoomOut]
+-[ZOTWorkspace _zoomHandleAppSwitcher]
+-[ZOTWorkspace _handleEventTapEvent:record:]
+-[ZOTWorkspace currentlyZoomed]
+-[ZOTWorkspace _setAccessibilityAnimationOffset:]
+-[ZOTWorkspace followsKeyboardFocus]
+-[ZOTWorkspace setFollowsKeyboardFocus:]
+-[ZOTWorkspace touchToSpeakModeEnabled]
+-[ZOTWorkspace currentlyTouchingToSpeak]
+-[ZOTWorkspace setCurrentlyTouchingToSpeak:]
+-[ZOTWorkspace smoothScalingDisabled]
+-[ZOTWorkspace setSmoothScalingDisabled:]
+-[ZOTWorkspace eventTapIdentifier]
+-[ZOTWorkspace followCursorTimer]
+-[ZOTWorkspace setFollowCursorTimer:]
+-[ZOTWorkspace springboardActionHandlerIdentifer]
+-[ZOTWorkspace setSpringboardActionHandlerIdentifer:]
++[AXBackBoardGlueZoom _initializeSafeCategory]
++[AXBackBoardGlueZoom _initializeSafeCategoryFromValidationManager]
++[AXBackBoardGlueZoom _installSafeCategoryValidationMethod]
++[AXBackBoardGlueZoom _accessibilityTargetClassName]
+-[AXBackBoardGlueZoom(Priv) zoomActivationAnimationDelay]
+-[AXBackBoardGlueZoom(Priv) zoomDeactivationAnimationDelay]
+-[AXBackBoardGlueZoom(Priv) zoomAppSwitcherRevealAnimationDelay]
+-[AXBackBoardGlueZoom(Priv) zoomAppSwitcherWillReveal]
+-[AXBackBoardGlueZoom(Priv) zoomActivationAnimationWillBegin]
+-[AXBackBoardGlueZoom(Priv) zoomDeactivationAnimationWillBegin]
+____accessibilityEventTapCallback_block_invoke
+___copy_helper_block_282
+___destroy_helper_block_283
++[ZOTConfiguration configurationManager]
+-[ZOTConfiguration init]
+-[ZOTConfiguration dealloc]
+-[ZOTConfiguration didStartForFirstTime]
+-[ZOTConfiguration valueForKey:]
+-[ZOTConfiguration setValue:forKey:]
+-[ZOTConfiguration _synchronizePrefs]
+-[ZOTConfiguration setZoomLevel:location:zoomed:forKey:]
+-[ZOTConfiguration zoomLevelForKey:currentLevel:]
+-[ZOTConfiguration zoomLocationForKey:currentLocation:]
+-[ZOTConfiguration zoomedForKey:]
+-[ZOTConfiguration perApplicationZoomLevelEnabled]
++[ZOTEvent createEventFromEventRepresentation:]
+-[ZOTEvent _initWithDeviceIdentifier:andEventRepresentation:]
+-[ZOTEvent copyWithZone:]
+-[ZOTEvent dealloc]
+-[ZOTEvent _addFingerInformation]
+-[ZOTEvent description]
+-[ZOTEvent chordChanged]
+-[ZOTEvent handEventType]
+-[ZOTEvent handTouched]
+-[ZOTEvent isTouchEventWeCareAbout]
+-[ZOTEvent record]
+-[ZOTEvent setRecord:]
+___ZOTMainScreenScaleFactor_block_invoke
+___ZOTUpdateDeviceOrientation_block_invoke
+-[NSThread(ZOTPriv) zotRunBlock:]
+___ZOTDispatchEventThreadWithDelay_block_invoke
+___copy_helper_block_
+___destroy_helper_block_
+-[ZOTEventFactory init]
+___23-[ZOTEventFactory init]_block_invoke
+___copy_helper_block_
+___destroy_helper_block_
+___23-[ZOTEventFactory init]_block_invoke26
+___copy_helper_block_31
+___destroy_helper_block_32
+-[ZOTEventFactory _runThread]
+-[ZOTEventFactory _registerForDistributedZooms]
+-[ZOTEventFactory dealloc]
+-[ZOTEventFactory _eventFilter:]
+-[ZOTEventFactory _registerIOHIDUsage]
+___38-[ZOTEventFactory _registerIOHIDUsage]_block_invoke
+__ioHIDEventFilterCallback
+___copy_helper_block_102
+___destroy_helper_block_103
+-[ZOTEventFactory _disableIOFilter]
+___35-[ZOTEventFactory _disableIOFilter]_block_invoke
+___copy_helper_block_105
+___destroy_helper_block_106
+-[ZOTEventFactory _delayedSetZoomDisabled]
+___42-[ZOTEventFactory _delayedSetZoomDisabled]_block_invoke
+___copy_helper_block_113
+___destroy_helper_block_114
+-[ZOTEventFactory zoomManager]
+-[ZOTEventFactory _snapZoomInDirection:]
+-[ZOTEventFactory _handleAppSwitcherReveal]
+-[ZOTEventFactory handleAppSwitcherReveal]
+___42-[ZOTEventFactory handleAppSwitcherReveal]_block_invoke
+___copy_helper_block_122
+___destroy_helper_block_123
+-[ZOTEventFactory snapZoomInDirection:]
+___39-[ZOTEventFactory snapZoomInDirection:]_block_invoke
+___copy_helper_block_129
+___destroy_helper_block_130
+-[ZOTEventFactory conflictAlertDidDismissWithButtonIndex:]
+___58-[ZOTEventFactory conflictAlertDidDismissWithButtonIndex:]_block_invoke
+___copy_helper_block_175
+___destroy_helper_block_176
+-[ZOTEventFactory tripleClickAlertDidDismissWithButtonIndex:]
+-[ZOTEventFactory _popConflictAlert:]
+___37-[ZOTEventFactory _popConflictAlert:]_block_invoke
+___copy_helper_block_191
+___destroy_helper_block_192
+-[ZOTEventFactory _showAppConflictAlertIfNecessary]
+-[ZOTEventFactory _zoomConflictRegistered:]
+-[ZOTEventFactory _zoomAdjustmentChange:]
+-[ZOTEventFactory _zoomFocusChanged:]
+-[ZOTEventFactory zoomConflictRegistered:]
+___42-[ZOTEventFactory zoomConflictRegistered:]_block_invoke
+___copy_helper_block_227
+___destroy_helper_block_228
+-[ZOTEventFactory zoomAdjustmentChange:]
+___40-[ZOTEventFactory zoomAdjustmentChange:]_block_invoke
+___copy_helper_block_232
+___destroy_helper_block_233
+-[ZOTEventFactory zoomFocusChanged:]
+___36-[ZOTEventFactory zoomFocusChanged:]_block_invoke
+___copy_helper_block_237
+___destroy_helper_block_238
+-[ZOTEventFactory handleTurnOffZoom]
+___36-[ZOTEventFactory handleTurnOffZoom]_block_invoke
+___copy_helper_block_242
+___destroy_helper_block_243
+___36-[ZOTEventFactory handleTurnOffZoom]_block_invoke245
+___copy_helper_block_248
+___destroy_helper_block_249
+-[ZOTEventFactory setZoomEnabled:]
+___34-[ZOTEventFactory setZoomEnabled:]_block_invoke
+___copy_helper_block_251
+___destroy_helper_block_252
+-[ZOTEventFactory _setZoomEnabled:]
+-[ZOTEventFactory currentlyZoomed]
+-[ZOTEventFactory handleApplicationDeactivated]
+___47-[ZOTEventFactory handleApplicationDeactivated]_block_invoke
+___copy_helper_block_256
+___destroy_helper_block_257
+-[ZOTEventFactory _handleApplicationDeactivated]
+-[ZOTEventFactory handleApplicationActivated:]
+___46-[ZOTEventFactory handleApplicationActivated:]_block_invoke
+___copy_helper_block_265
+___destroy_helper_block_266
+-[ZOTEventFactory adjustedPointForApplicationTopWithZoomLevel:]
+-[ZOTEventFactory adjustedPointForSpringboardLockSliderWithZoomLevel:]
+-[ZOTEventFactory adjustedPointForPreferencesSwitch]
+-[ZOTEventFactory _updateOrientationUntilAvailable]
+___51-[ZOTEventFactory _updateOrientationUntilAvailable]_block_invoke
+___copy_helper_block_272
+___destroy_helper_block_273
+-[ZOTEventFactory _handleApplicationActivated:]
+-[ZOTEventFactory _currentVelocity:]
+-[ZOTEventFactory _hasReachedFlickVelocity:]
+-[ZOTEventFactory _middleFingerForEvent:]
+-[ZOTEventFactory handleEvent:record:]
+___38-[ZOTEventFactory handleEvent:record:]_block_invoke
+___copy_helper_block_315
+___destroy_helper_block_316
+-[ZOTEventFactory _handleTouchToSpeak:]
+-[ZOTEventFactory _verifyZoomActionIsAppropriate:]
+-[ZOTEventFactory _handleDoubleTapEvent:newLocation:]
+-[ZOTEventFactory _handleMultiTapActionWithEvent:]
+-[ZOTEventFactory _disableSleepTimer:]
+-[ZOTEventFactory _handleEvent:]
+___32-[ZOTEventFactory _handleEvent:]_block_invoke
+___copy_helper_block_403
+___destroy_helper_block_404
+___32-[ZOTEventFactory _handleEvent:]_block_invoke412
+___copy_helper_block_415
+___destroy_helper_block_416
+___32-[ZOTEventFactory _handleEvent:]_block_invoke420
+___copy_helper_block_423
+___destroy_helper_block_424
+-[ZOTEventFactory _clearState]
+-[ZOTEventFactory _eventPostTimerCallback]
+-[ZOTEventFactory _queueEvent:]
+-[ZOTEventFactory _resetEventQueue]
+-[ZOTEventFactory _fireEventQueue]
+___34-[ZOTEventFactory _fireEventQueue]_block_invoke
+___copy_helper_block_444
+___destroy_helper_block_445
+-[ZOTEventFactory _fireEvent:]
+-[ZOTEventFactory _fastFireEventQueue]
+-[ZOTEventFactory _postHandCancel]
+-[ZOTEventFactory _fireNextEvent]
+___33-[ZOTEventFactory _fireNextEvent]_block_invoke
+___copy_helper_block_459
+___destroy_helper_block_460
+-[ZOTEventFactory _mt_fireEventQueue:]
+-[ZOTEventFactory setTouchToSpeakEnabled:]
+-[ZOTEventFactory _touchToSpeakToggle]
+-[ZOTEventFactory _updateAutopan]
+___33-[ZOTEventFactory _updateAutopan]_block_invoke
+___copy_helper_block_475
+___destroy_helper_block_476
+-[ZOTEventFactory _autoPanIfNecessaryWithEvent:]
+___48-[ZOTEventFactory _autoPanIfNecessaryWithEvent:]_block_invoke
+___copy_helper_block_480
+___destroy_helper_block_481
++[ZOTZoomManager initialize]
+-[ZOTZoomManager init]
+-[ZOTZoomManager _zoomListenerRegistered:]
+-[ZOTZoomManager setZoomEnabled:]
+-[ZOTZoomManager update]
+-[ZOTZoomManager _initializeZoomView]
+-[ZOTZoomManager zoomLevel]
+-[ZOTZoomManager currentlyZoomed]
+-[ZOTZoomManager storedZoomLevel]
+-[ZOTZoomManager updateStoredZoomeLevel]
+-[ZOTZoomManager zoomToMinimumWithDuration:]
+-[ZOTZoomManager restoreZoomAtLocation:duration:]
++[ZOTZoomManager frameForZoomLevel:startingFrame:]
+-[ZOTZoomManager setZoomLevel:duration:]
+-[ZOTZoomManager setZoomLevel:location:zoomed:duration:]
+-[ZOTZoomManager _setZoomLevel:location:zoomed:duration:]
+___57-[ZOTZoomManager _setZoomLevel:location:zoomed:duration:]_block_invoke
+___copy_helper_block_
+___destroy_helper_block_
+-[ZOTZoomManager zoomFrame]
+-[ZOTZoomManager shouldBlockShowNotificationGesture]
+-[ZOTZoomManager zoomLocation]
+-[ZOTZoomManager translateEventForZoomState:]
+-[ZOTZoomManager endZoomMovement]
+-[ZOTZoomManager isZoomMovingWithVelocity]
+-[ZOTZoomManager stopZoomMovementWithVelocity]
+-[ZOTZoomManager _zoomMovementHeartbeat]
+-[ZOTZoomManager _zoomMovementHeartbeat:]
+-[ZOTZoomManager _calculateDurationForVelocity:]
+-[ZOTZoomManager _calculateDistanceForAngle:]
+-[ZOTZoomManager continueZoomMovementWithVelocity:angle:]
+-[ZOTZoomManager updateZoomMovementWithPoint:]
+-[ZOTZoomManager setZoomLocation:duration:]
+-[ZOTZoomManager shouldBlockShowControlCenterGesture]
+-[ZOTZoomManager blockControlCenterGestureIfNeeded]
+-[ZOTZoomManager blockNotificationCenterGestureIfNeeded]
+-[ZOTZoomManager _setZoomLayerPositionWithFrame:didHitBorderY:didHitBorderX:duration:]
+___86-[ZOTZoomManager _setZoomLayerPositionWithFrame:didHitBorderY:didHitBorderX:duration:]_block_invoke
+___copy_helper_block_138
+___destroy_helper_block_139
+-[ZOTZoomManager _constrainedFrameWithFrame:didHitBorderY:didHitBorderX:]
+-[ZOTZoomManager snapZoomInDirection:]
+-[ZOTZoomManager autopanWithEvent:initialSingleFingerLocation:]
+-[ZOTZoomManager autopanShouldStartWithEvent:speedFactor:initialSingleFingerLocation:]
+-[ZOTZoomManager usingRelativePushPanning]
+-[ZOTZoomManager setUsingRelativePushPanning:]
+___ZOTGutterDistance_block_invoke
+___ZOTNotGutterFrame_block_invoke
++[ZOTTouchCursorController sharedCusor]
++[ZOTElement systemWideElement]
++[ZOTElement elementWithUIElement:]
++[ZOTElement _elementWithAXUIElementRef:]
+-[ZOTElement initApplicationWithPosition:]
+-[ZOTElement initWithAXElement:]
+-[ZOTElement initWithUIElement:]
+-[ZOTElement initWithPosition:]
+-[ZOTElement copyWithZone:]
+-[ZOTElement dealloc]
+-[ZOTElement uiElement]
+-[ZOTElement doesHaveTraits:]
+-[ZOTElement language]
+-[ZOTElement frame]
+-[ZOTElement updateValue]
+-[ZOTElement value]
+-[ZOTElement updateLabel]
+-[ZOTElement traits]
+-[ZOTElement label]
+-[ZOTElement hint]
+-[ZOTElement description]
+-[ZOTElement isEqual:]
++[ZOTSystemInterface initialize]
+___32+[ZOTSystemInterface initialize]_block_invoke
+___32+[ZOTSystemInterface initialize]_block_invoke_2
++[ZOTSystemInterface setLockScreenDimTimerEnabled:]
++[ZOTSystemInterface zoomLevelChanged:zoomFrame:]
++[ZOTSystemInterface sendUserEventOccurred]
++[ZOTSystemInterface topApplicationBundleId]
++[ZOTSystemInterface runningApplications]
++[ZOTSystemInterface applicationWorkspace]
++[ZOTSystemInterface displayConvertFromCAScreen:contextId:]
++[ZOTSystemInterface displayConvertToCAScreen:]
++[BKApplicationZoomAccessibility _initializeSafeCategory]
++[BKApplicationZoomAccessibility _initializeSafeCategoryFromValidationManager]
++[BKApplicationZoomAccessibility _installSafeCategoryValidationMethod]
++[BKApplicationZoomAccessibility _accessibilityTargetClassName]
+-[BKApplicationZoomAccessibility(SafeCategory) noteSuspended:]
+-[BKApplicationZoomAccessibility(SafeCategory) noteSuspensionSettingsUpdated:]
+_objc_msgSend$shim
+_dispatch_once$shim
+_UIAccessibilityInstallSafeCategory$shim
+__AXSApplicationAccessibilitySetEnabled$shim
+__Block_object_assign$shim
+__Block_object_dispose$shim
+_objc_setProperty_nonatomic$shim
+_CFPreferencesAppSynchronize$shim
+_dispatch_async$shim
+__AXSZoomTouchSetEnabled$shim
+_CFRelease$shim
+_BKSHIDServicesCancelTouchesOnMainDisplay$shim
+ stub helpers
+___block_descriptor_tmp
+___block_literal_global
+___block_descriptor_tmp86
+___block_literal_global87
+___block_descriptor_tmp116
+___block_descriptor_tmp121
+___block_descriptor_tmp126
+___block_descriptor_tmp284
+___block_descriptor_tmp
+___block_literal_global
+___block_descriptor_tmp33
+___block_literal_global34
+___block_descriptor_tmp43
+___block_descriptor_tmp
+___block_descriptor_tmp34
+___38-[ZOTEventFactory _registerIOHIDUsage]_block_invoke.keys
+___block_descriptor_tmp104
+___block_descriptor_tmp107
+___block_descriptor_tmp115
+___block_descriptor_tmp124
+___block_descriptor_tmp131
+___block_descriptor_tmp177
+___block_descriptor_tmp193
+___block_descriptor_tmp229
+___block_descriptor_tmp234
+___block_descriptor_tmp239
+___block_descriptor_tmp244
+___block_descriptor_tmp250
+___block_descriptor_tmp253
+___block_descriptor_tmp258
+___block_descriptor_tmp267
+___block_descriptor_tmp274
+___block_descriptor_tmp317
+___block_descriptor_tmp405
+___block_descriptor_tmp417
+___block_descriptor_tmp425
+___block_descriptor_tmp446
+___block_descriptor_tmp461
+___block_descriptor_tmp477
+___block_descriptor_tmp482
+___block_descriptor_tmp
+___block_descriptor_tmp140
+___block_descriptor_tmp224
+___block_literal_global
+___block_descriptor_tmp225
+___block_literal_global226
+___block_descriptor_tmp
+___block_literal_global
+___block_descriptor_tmp48
+___block_literal_global49
+_OBJC_IVAR_$_ZOTWorkspace._currentlyTouchingToSpeak
+_OBJC_IVAR_$_ZOTWorkspace._followCursorTimer
+_OBJC_IVAR_$_ZOTWorkspace._springboardActionHandlerIdentifer
+_OBJC_IVAR_$_ZOTEvent._record
+_OBJC_IVAR_$_ZOTEvent._chordChanged
+_OBJC_IVAR_$_ZOTEvent._handTouched
+_OBJC_IVAR_$_ZOTEvent._weCare
+_OBJC_IVAR_$_ZOTZoomManager.usingRelativePushPanning
+_ZOTDeviceRotation.Rotation
+-[ZOTWorkspace _installSafeCategories].onceToken
+__ZoomEnabled
+__touchToSpeakChanged.DidCheckAppAccessibility
+__AXSAppAccessibilityOnBefore
+__MergedGlobals
+__MergedGlobals
+__SharedCursor
++[ZOTElement systemWideElement].SystemWideElement
+_AXBackboardGlue
+_AXClassicAppZoomedInStorageKey
+_LocString
+_OBJC_CLASS_$_AXBackBoardGlueZoom
+_OBJC_CLASS_$_AXBackBoardGlueZoom_super
+_OBJC_CLASS_$_BKApplicationZoomAccessibility
+_OBJC_CLASS_$_BKApplicationZoomAccessibility_super
+_OBJC_CLASS_$_ZOTConfiguration
+_OBJC_CLASS_$_ZOTElement
+_OBJC_CLASS_$_ZOTEvent
+_OBJC_CLASS_$_ZOTEventFactory
+_OBJC_CLASS_$_ZOTSystemInterface
+_OBJC_CLASS_$_ZOTTouchCursorController
+_OBJC_CLASS_$_ZOTWorkspace
+_OBJC_CLASS_$_ZOTZoomManager
+_OBJC_IVAR_$_ZOTConfiguration._syncTimer
+_OBJC_IVAR_$_ZOTElement._uiElement
+_OBJC_IVAR_$_ZOTEventFactory._allowTimedEventPosting
+_OBJC_IVAR_$_ZOTEventFactory._anyFingerDown
+_OBJC_IVAR_$_ZOTEventFactory._anyFingerDownTime
+_OBJC_IVAR_$_ZOTEventFactory._applicationKey
+_OBJC_IVAR_$_ZOTEventFactory._autopanDelay
+_OBJC_IVAR_$_ZOTEventFactory._autopanDownEvent
+_OBJC_IVAR_$_ZOTEventFactory._autopanEvent
+_OBJC_IVAR_$_ZOTEventFactory._autopanTimer
+_OBJC_IVAR_$_ZOTEventFactory._averageVelocity
+_OBJC_IVAR_$_ZOTEventFactory._borderpanMode
+_OBJC_IVAR_$_ZOTEventFactory._borderpanStartTime
+_OBJC_IVAR_$_ZOTEventFactory._cachedGestures
+_OBJC_IVAR_$_ZOTEventFactory._cameraRunning
+_OBJC_IVAR_$_ZOTEventFactory._conflictAlertData
+_OBJC_IVAR_$_ZOTEventFactory._conflictAlertVisible
+_OBJC_IVAR_$_ZOTEventFactory._currentElement
+_OBJC_IVAR_$_ZOTEventFactory._currentEventPort
+_OBJC_IVAR_$_ZOTEventFactory._currentVector
+_OBJC_IVAR_$_ZOTEventFactory._currentlyTransititioningBetweenApps
+_OBJC_IVAR_$_ZOTEventFactory._cursorController
+_OBJC_IVAR_$_ZOTEventFactory._deviceOrientation
+_OBJC_IVAR_$_ZOTEventFactory._eventFingersTracking
+_OBJC_IVAR_$_ZOTEventFactory._eventPostTimer
+_OBJC_IVAR_$_ZOTEventFactory._eventQueue
+_OBJC_IVAR_$_ZOTEventFactory._eventThread
+_OBJC_IVAR_$_ZOTEventFactory._firstFingerDownTime
+_OBJC_IVAR_$_ZOTEventFactory._flickLocation
+_OBJC_IVAR_$_ZOTEventFactory._flickTime
+_OBJC_IVAR_$_ZOTEventFactory._flicking
+_OBJC_IVAR_$_ZOTEventFactory._ignoreSnarfingForFingerSession
+_OBJC_IVAR_$_ZOTEventFactory._initialSingleFingerLocation
+_OBJC_IVAR_$_ZOTEventFactory._ioSystemFilterClient
+_OBJC_IVAR_$_ZOTEventFactory._ioSystemPostBackClient
+_OBJC_IVAR_$_ZOTEventFactory._isInLockScreen
+_OBJC_IVAR_$_ZOTEventFactory._lastAppTransition
+_OBJC_IVAR_$_ZOTEventFactory._lastDownEvent
+_OBJC_IVAR_$_ZOTEventFactory._lastPanTime
+_OBJC_IVAR_$_ZOTEventFactory._multiTapTimer
+_OBJC_IVAR_$_ZOTEventFactory._offsetLocation
+_OBJC_IVAR_$_ZOTEventFactory._pannerTrackDistance
+_OBJC_IVAR_$_ZOTEventFactory._passthruEventQueue
+_OBJC_IVAR_$_ZOTEventFactory._passthruEventTimer
+_OBJC_IVAR_$_ZOTEventFactory._pinchDetectionDistance
+_OBJC_IVAR_$_ZOTEventFactory._runLoopEnabled
+_OBJC_IVAR_$_ZOTEventFactory._secondFingerDownTime
+_OBJC_IVAR_$_ZOTEventFactory._sleepTimerDisabled
+_OBJC_IVAR_$_ZOTEventFactory._snarfFingerCount
+_OBJC_IVAR_$_ZOTEventFactory._snarfFingerIdentifier
+_OBJC_IVAR_$_ZOTEventFactory._snarfLastTime
+_OBJC_IVAR_$_ZOTEventFactory._snarfing
+_OBJC_IVAR_$_ZOTEventFactory._tapCount
+_OBJC_IVAR_$_ZOTEventFactory._tapCountResetTimer
+_OBJC_IVAR_$_ZOTEventFactory._tapDoubleLastTime
+_OBJC_IVAR_$_ZOTEventFactory._tapDoubleTracking
+_OBJC_IVAR_$_ZOTEventFactory._tapLastTime
+_OBJC_IVAR_$_ZOTEventFactory._tapPoint
+_OBJC_IVAR_$_ZOTEventFactory._timerFingerCount
+_OBJC_IVAR_$_ZOTEventFactory._trackingLocation
+_OBJC_IVAR_$_ZOTEventFactory._twoFingerTapDownWithHold
+_OBJC_IVAR_$_ZOTEventFactory._velocityLastTime
+_OBJC_IVAR_$_ZOTEventFactory._velocityLocation
+_OBJC_IVAR_$_ZOTEventFactory._wasFlicking
+_OBJC_IVAR_$_ZOTEventFactory._wasPassingThroughSystemGesture
+_OBJC_IVAR_$_ZOTEventFactory._zoomDisabledForApp
+_OBJC_IVAR_$_ZOTEventFactory._zoomLevel
+_OBJC_IVAR_$_ZOTEventFactory._zoomManager
+_OBJC_IVAR_$_ZOTEventFactory._zoomPanning
+_OBJC_IVAR_$_ZOTEventFactory._zoomStartOffset
+_OBJC_IVAR_$_ZOTEventFactory._zoomedToMinimum
+_OBJC_IVAR_$_ZOTEventFactory._zoomerTrackStart
+_OBJC_IVAR_$_ZOTEventFactory._zooming
+_OBJC_IVAR_$_ZOTTouchCursorController._hidden
+_OBJC_IVAR_$_ZOTWorkspace._accessibilityAnimationOffset
+_OBJC_IVAR_$_ZOTWorkspace._eventFactory
+_OBJC_IVAR_$_ZOTWorkspace._eventTapIdentifier
+_OBJC_IVAR_$_ZOTWorkspace._followsKeyboardFocus
+_OBJC_IVAR_$_ZOTWorkspace._lastEventTime
+_OBJC_IVAR_$_ZOTWorkspace._powerDownController
+_OBJC_IVAR_$_ZOTWorkspace._smoothScalingDisabled
+_OBJC_IVAR_$_ZOTWorkspace._springBoardAwayController
+_OBJC_IVAR_$_ZOTWorkspace._telephonyManager
+_OBJC_IVAR_$_ZOTWorkspace._touchToSpeakModeEnabled
+_OBJC_IVAR_$_ZOTWorkspace._touchingToSpeak
+_OBJC_IVAR_$_ZOTZoomManager._careBorderX
+_OBJC_IVAR_$_ZOTZoomManager._careBorderY
+_OBJC_IVAR_$_ZOTZoomManager._ctx
+_OBJC_IVAR_$_ZOTZoomManager._currentlyZoomed
+_OBJC_IVAR_$_ZOTZoomManager._distanceAvailable
+_OBJC_IVAR_$_ZOTZoomManager._isBlockingControlCenter
+_OBJC_IVAR_$_ZOTZoomManager._isBlockingShowNotifications
+_OBJC_IVAR_$_ZOTZoomManager._isMovingWithVelocity
+_OBJC_IVAR_$_ZOTZoomManager._lastMovementFrame
+_OBJC_IVAR_$_ZOTZoomManager._lastUpdateVelocityTime
+_OBJC_IVAR_$_ZOTZoomManager._movementTimer
+_OBJC_IVAR_$_ZOTZoomManager._rootLayer
+_OBJC_IVAR_$_ZOTZoomManager._storedZoomLevel
+_OBJC_IVAR_$_ZOTZoomManager._threadKey
+_OBJC_IVAR_$_ZOTZoomManager._usingRelativePushPanning
+_OBJC_IVAR_$_ZOTZoomManager._velocity
+_OBJC_IVAR_$_ZOTZoomManager._zoomFingerStartPosition
+_OBJC_IVAR_$_ZOTZoomManager._zoomFrame
+_OBJC_IVAR_$_ZOTZoomManager._zoomFrameStart
+_OBJC_IVAR_$_ZOTZoomManager._zoomLevel
+_OBJC_IVAR_$_ZOTZoomManager._zoomLevelUpdaterTimer
+_OBJC_METACLASS_$_AXBackBoardGlueZoom
+_OBJC_METACLASS_$_AXBackBoardGlueZoom_super
+_OBJC_METACLASS_$_BKApplicationZoomAccessibility
+_OBJC_METACLASS_$_BKApplicationZoomAccessibility_super
+_OBJC_METACLASS_$_ZOTConfiguration
+_OBJC_METACLASS_$_ZOTElement
+_OBJC_METACLASS_$_ZOTEvent
+_OBJC_METACLASS_$_ZOTEventFactory
+_OBJC_METACLASS_$_ZOTSystemInterface
+_OBJC_METACLASS_$_ZOTTouchCursorController
+_OBJC_METACLASS_$_ZOTWorkspace
+_OBJC_METACLASS_$_ZOTZoomManager
+_UIAXZoomFocusChangedNotification
+_UIAXZoomRegisterConflict
+_ZOTClassicModeStatus
+_ZOTDenormalizePoint
+_ZOTDenormalizeValue
+_ZOTDeviceOrientation
+_ZOTDeviceRotation
+_ZOTDispatchEventThread
+_ZOTDispatchEventThreadWithDelay
+_ZOTDisplayMainScreenSize
+_ZOTFlipDenormalizedPoint
+_ZOTInitializeUtilities
+_ZOTIsWildcat
+_ZOTMainScreenRect
+_ZOTMainScreenScaleFactor
+_ZOTMainScreenSize
+_ZOTNormalizePoint
+_ZOTNormalizeValue
+_ZOTRotateFromScreen
+_ZOTRotateToScreen
+_ZOTRotatedZoomFrameToOrientation
+_ZOTSetThreadPriority
+_ZOTSharedWorkspace
+_ZOTSystemBootTime
+_ZOTTimeSinceBoot
+_ZOTUpdateDeviceOrientation
+_ZOTWindowServerDisplay
+__ZOTConfiguration
+_kZOTContinueUsingZoomInApp
+_kZOTDisableZoomEventsForApp
+_ADClientSetValueForScalarKey
+_AXDeviceIsPad
+_AXLogShouldLogWithLevelAndFacility
+_AXPerformBlockOnMainThreadAfterDelay
+_AXPerformValidationChecks
+_AX_CGRectGetCenter
+_BKSHIDServicesCancelTouchesOnMainDisplay
+_CFAbsoluteTimeGetCurrent
+_CFArrayGetCount
+_CFArrayGetValueAtIndex
+_CFArrayRemoveValueAtIndex
+_CFDictionaryCreate
+_CFNotificationCenterAddObserver
+_CFNotificationCenterGetDarwinNotifyCenter
+_CFNotificationCenterRemoveEveryObserver
+_CFNumberCreate
+_CFPreferencesAppSynchronize
+_CFPreferencesCopyAppValue
+_CFPreferencesSetAppValue
+_CFRelease
+_CFRunLoopGetCurrent
+_CGPointZero
+_CGRectContainsPoint
+_CGRectContainsRect
+_CGRectEqualToRect
+_CGRectGetMaxX
+_CGRectGetMaxY
+_CGRectGetMidX
+_CGRectGetMidY
+_CGRectGetMinX
+_CGRectGetMinY
+_CGRectInset
+_CGRectZero
+_GSMainScreenOrientation
+_GSMainScreenScaleFactor
+_IOHIDEventGetSenderID
+_IOHIDEventGetType
+_IOHIDEventSetSenderID
+_IOHIDEventSystemClientCreate
+_IOHIDEventSystemClientDispatchEvent
+_IOHIDEventSystemClientRegisterEventFilterCallbackWithPriority
+_IOHIDEventSystemClientScheduleWithRunLoop
+_IOHIDEventSystemClientSetMatching
+_IOHIDEventSystemClientUnregisterEventFilterCallback
+_IOHIDEventSystemClientUnscheduleWithRunLoop
+_MGCopyAnswer
+_NSClassFromString
+_NSDefaultRunLoopMode
+_NSLog
+_NSRectFromString
+_NSRunLoopCommonModes
+_NSStringFromRect
+_OBJC_CLASS_$_AXAccessQueue
+_OBJC_CLASS_$_AXEventRepresentation
+_OBJC_CLASS_$_AXEventTapManager
+_OBJC_CLASS_$_AXSpringBoardServer
+_OBJC_CLASS_$_AXThreadTimer
+_OBJC_CLASS_$_AXTimer
+_OBJC_CLASS_$_AXUIElement
+_OBJC_CLASS_$_AXValidationManager
+_OBJC_CLASS_$_AXVoiceOverServer
+_OBJC_CLASS_$_CALayer
+_OBJC_CLASS_$_CAMediaTimingFunction
+_OBJC_CLASS_$_CATransaction
+_OBJC_CLASS_$_CAWindowServer
+_OBJC_CLASS_$_NSArray
+_OBJC_CLASS_$_NSAutoreleasePool
+_OBJC_CLASS_$_NSBundle
+_OBJC_CLASS_$_NSDate
+_OBJC_CLASS_$_NSDictionary
+_OBJC_CLASS_$_NSMachPort
+_OBJC_CLASS_$_NSMutableArray
+_OBJC_CLASS_$_NSMutableDictionary
+_OBJC_CLASS_$_NSNotificationCenter
+_OBJC_CLASS_$_NSNumber
+_OBJC_CLASS_$_NSObject
+_OBJC_CLASS_$_NSRunLoop
+_OBJC_CLASS_$_NSString
+_OBJC_CLASS_$_NSThread
+_OBJC_CLASS_$_NSTimer
+_OBJC_CLASS_$_SCRCGestureEvent
+_OBJC_CLASS_$_SCRCTargetSelectorTimer
+_OBJC_CLASS_$_UIAccessibilitySafeCategory
+_OBJC_METACLASS_$_NSObject
+_OBJC_METACLASS_$_SCRCGestureEvent
+_OBJC_METACLASS_$_UIAccessibilitySafeCategory
+_SCRCMathClearAverage
+_SCRCMathGetAverage
+_SCRCMathGetDistanceBetweenPoints
+_SCRCMathGetVectorAndDistanceForPoints
+_SCRCMathUpdateAverage
+_UIAXAppendValidationError
+_UIAXZoomAdjustmentChange
+_UIAccessibilityInstallSafeCategory
+__AXLogWithFacility
+__AXSApplicationAccessibilityEnabled
+__AXSApplicationAccessibilitySetEnabled
+__AXSAssistiveTouchScannerEnabled
+__AXSSetTripleClickOptions
+__AXSTripleClickCopyOptions
+__AXSVoiceOverTouchEnabled
+__AXSZoomTouchSetEnabled
+__AXSZoomTouchSetToggledByPreferenceSwitch
+__AXSZoomTouchToSpeakEnabled
+__AXSZoomTouchToggledByPreferenceSwitch
+__Block_object_assign
+__Block_object_dispose
+__GSEventGetGSEventRecord
+__NSConcreteGlobalBlock
+__NSConcreteStackBlock
+___CFConstantStringClassReference
+___UIAXValidateInstanceMethodArguments
+___stack_chk_fail
+___stack_chk_guard
+__dispatch_main_q
+__objc_empty_cache
+__objc_empty_vtable
+_class_getInstanceMethod
+_dispatch_async
+_dispatch_get_global_queue
+_dispatch_once
+_exp
+_floorf
+_free
+_kAXAdjustableTrait
+_kAXIsEditingTrait
+_kAXSVoiceOverTouchEnabledNotification
+_kAXSZoomTouchSmoothScalingNotification
+_kAXSZoomTouchToSpeakEnabledNotification
+_kAXUpdatesFrequentlyTrait
+_kCAContextDefinesDisplayBounds
+_kCAContextDisplayFilter
+_kCAContextIgnoresHitTest
+_kCAFilterNearest
+_kCAMediaTimingFunctionEaseInEaseOut
+_kCAMediaTimingFunctionLinear
+_kCFAllocatorDefault
+_kCFBooleanTrue
+_kCFRunLoopDefaultMode
+_kCFTypeDictionaryKeyCallBacks
+_kCFTypeDictionaryValueCallBacks
+_method_copyReturnType
+_notify_get_state
+_notify_register_dispatch
+_objc_enumerationMutation
+_objc_getAssociatedObject
+_objc_msgSend
+_objc_msgSendSuper2
+_objc_msgSend_stret
+_objc_setAssociatedObject
+_objc_setProperty_nonatomic
+_pow
+_pthread_getschedparam
+_pthread_self
+_pthread_setschedparam
+_strcmp
+_sysctl
+_usleep
+dyld_stub_binder

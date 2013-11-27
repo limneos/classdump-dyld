@@ -1,0 +1,16 @@
+__mh_dylib_header
+dyld_stub_binding_helper
+__dyld_func_lookup
+_free_data
+dyld__mach_header
+_pam_sm_close_session
+_pam_sm_open_session
+_calloc
+_free
+_getpid
+_gettimeofday
+_pam_get_data
+_pam_get_item
+_pam_set_data
+_pututxline
+_strncpy

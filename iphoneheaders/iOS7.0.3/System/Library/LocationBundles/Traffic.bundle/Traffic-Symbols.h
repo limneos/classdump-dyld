@@ -1,0 +1,3 @@
+_TrafficVersionNumber
+_TrafficVersionString
+dyld_stub_binder

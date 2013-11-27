@@ -1,0 +1,13 @@
+radr://5614542
+__mh_execute_header
+_NSLog
+_OBJC_CLASS_$_NSBundle
+_OBJC_CLASS_$_NSString
+___CFConstantStringClassReference
+___stdoutp
+_exit
+_fflush
+_objc_autoreleasePoolPush
+_objc_msgSend
+_printf
+dyld_stub_binder
