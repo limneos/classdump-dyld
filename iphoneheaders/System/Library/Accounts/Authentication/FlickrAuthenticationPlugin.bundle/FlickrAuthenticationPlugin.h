@@ -1,0 +1,1 @@
+#import <FlickrAuthenticationPlugin/SLFlickrAuthenticationPlugin.h>

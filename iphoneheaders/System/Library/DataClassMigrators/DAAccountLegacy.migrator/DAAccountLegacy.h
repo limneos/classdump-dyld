@@ -1,0 +1,9 @@
+#import <DAAccountLegacy/CardDAVAccount_Legacy.h>
+#import <DAAccountLegacy/ASAccount_Legacy.h>
+#import <DAAccountLegacy/SubCalAccount_Legacy.h>
+#import <DAAccountLegacy/DAAccountLegacy.h>
+#import <DAAccountLegacy/MobileCalDAVAccount_Legacy.h>
+#import <DAAccountLegacy/DAIMAPNotesAccount_Legacy.h>
+#import <DAAccountLegacy/DALegacyAccount.h>
+#import <DAAccountLegacy/BookmarkDAVAccount_Legacy.h>
+#import <DAAccountLegacy/LDAPAccount_Legacy.h>

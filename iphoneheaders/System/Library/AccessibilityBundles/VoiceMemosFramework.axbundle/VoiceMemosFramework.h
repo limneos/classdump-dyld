@@ -1,0 +1,15 @@
+#import <VoiceMemosFramework/RCPlayMemoViewControllerAccessibility_super.h>
+#import <VoiceMemosFramework/RCPlayMemoViewControllerAccessibility.h>
+#import <VoiceMemosFramework/RCUILabelAccessibility_super.h>
+#import <VoiceMemosFramework/RCUILabelAccessibility.h>
+#import <VoiceMemosFramework/__VoiceMemosFrameworkAccessibility.h>
+#import <VoiceMemosFramework/AXWaveformSelectionBarElement.h>
+#import <VoiceMemosFramework/RCWaveformSelectionOverlayAccessibility_super.h>
+#import <VoiceMemosFramework/RCWaveformSelectionOverlayAccessibility.h>
+#import <VoiceMemosFramework/AXVoiceMemosFrameworkGlue.h>
+#import <VoiceMemosFramework/RCRecorderStateButtonAccessibility_super.h>
+#import <VoiceMemosFramework/RCRecorderStateButtonAccessibility.h>
+#import <VoiceMemosFramework/RCAudioRouteBarButtonItemAccessibility_super.h>
+#import <VoiceMemosFramework/RCAudioRouteBarButtonItemAccessibility.h>
+#import <VoiceMemosFramework/RCMemoPlaybackViewControllerAccessibility_super.h>
+#import <VoiceMemosFramework/RCMemoPlaybackViewControllerAccessibility.h>

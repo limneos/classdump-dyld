@@ -1,0 +1,11 @@
+#import <TextInput_ja/Romakana.h>
+#import <TextInput_ja/TIWordSearchKana.h>
+#import <TextInput_ja/TIWordSearch50onKana.h>
+#import <TextInput_ja/TIWordSearch3x3Kana.h>
+#import <TextInput_ja/TIWordSearchRomajiKana.h>
+#import <TextInput_ja/TIWordSearchJapaneseOperationGetCandidates.h>
+#import <TextInput_ja/TIKeyboardInputManager_ja_JP.h>
+#import <TextInput_ja/TIKeyboardInputManager_ja_JP_InlineKana.h>
+#import <TextInput_ja/TIKeyboardInputManager_ja_JP_Inline50OnKana.h>
+#import <TextInput_ja/TIKeyboardInputManager_ja_JP_InlineRomaji.h>
+#import <TextInput_ja/TICandidateSorter.h>

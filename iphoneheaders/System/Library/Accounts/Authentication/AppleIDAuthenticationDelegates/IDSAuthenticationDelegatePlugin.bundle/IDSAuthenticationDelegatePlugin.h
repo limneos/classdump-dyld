@@ -1,0 +1,1 @@
+#import <IDSAuthenticationDelegatePlugin/IDSAuthenticationDelegatePlugin.h>

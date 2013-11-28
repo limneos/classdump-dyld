@@ -1,0 +1,11 @@
+#import <medialibraryd/MLTestImportOperation.h>
+#import <medialibraryd/MLDXPCTransaction.h>
+#import <medialibraryd/MLDXPCTransactionController.h>
+#import <medialibraryd/MediaLibraryService.h>
+#import <medialibraryd/MLPurchaseHistoryImportOperation.h>
+#import <medialibraryd/MLImportOperation.h>
+#import <medialibraryd/MLMatchImportOperation.h>
+#import <medialibraryd/MLMatchPlaylistImportOperation.h>
+#import <medialibraryd/MediaLibrary.h>
+#import <medialibraryd/MediaLibraryQueueItem.h>
+#import <medialibraryd/MLHomeSharingImportOperation.h>

@@ -1,0 +1,11 @@
+#import <Contacts/AppDelegate.h>
+#import <Contacts/ContactCardNavigationController.h>
+#import <Contacts/ContactCardViewController.h>
+#import <Contacts/ContactsSplitViewController.h>
+#import <Contacts/ContactsTestingManager.h>
+#import <Contacts/ScrollContactInEditModeTest.h>
+#import <Contacts/ScrollContactTest.h>
+#import <Contacts/ScrollMemberListTest.h>
+#import <Contacts/SearchByNameTest.h>
+#import <Contacts/CNApplication.h>
+#import <Contacts/ShowContactsTest.h>

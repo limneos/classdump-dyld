@@ -1,0 +1,1 @@
+#import <TopHits/SPTopHitsDatastore.h>

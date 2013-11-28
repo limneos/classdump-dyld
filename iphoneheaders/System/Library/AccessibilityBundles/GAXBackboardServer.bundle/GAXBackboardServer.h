@@ -1,0 +1,13 @@
+#import <GAXBackboardServer/GAXPathWrapper.h>
+#import <GAXBackboardServer/GAXBackboardServer.h>
+#import <GAXBackboardServer/GAXBKAccelerometerInterfaceAccessibility_super.h>
+#import <GAXBackboardServer/GAXBKAccelerometerInterfaceAccessibility.h>
+#import <GAXBackboardServer/GAXBKSystemServiceAccessibility_super.h>
+#import <GAXBackboardServer/GAXBKSystemServiceAccessibility.h>
+#import <GAXBackboardServer/GAXProfileManager.h>
+#import <GAXBackboardServer/GAXSpringboardClient.h>
+#import <GAXBackboardServer/GAXSpringboardClientStatus.h>
+#import <GAXBackboardServer/GAXSettings.h>
+#import <GAXBackboardServer/GAXBackboard.h>
+#import <GAXBackboardServer/GAXApp.h>
+#import <GAXBackboardServer/GAXAppManager.h>

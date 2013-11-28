@@ -1,0 +1,11 @@
+#import <Notes/MNFNoteProperty.h>
+#import <Notes/NoteChangeObject.h>
+#import <Notes/NoteContext.h>
+#import <Notes/NoteSearchContext.h>
+#import <Notes/NoteObject.h>
+#import <Notes/NoteStoreObject.h>
+#import <Notes/NoteBodyObject.h>
+#import <Notes/NoteAccountObject.h>
+#import <Notes/NoteCollectionObject.h>
+#import <Notes/AccountUtilities.h>
+#import <Notes/NoteResurrectionMergePolicy.h>

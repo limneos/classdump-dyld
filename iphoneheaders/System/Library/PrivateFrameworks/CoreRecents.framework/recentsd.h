@@ -1,0 +1,17 @@
+#import <recentsd/CRDelayedWorkQueue.h>
+#import <recentsd/CRAgent.h>
+#import <recentsd/_CRRecentsSQLiteConnectionWrapper.h>
+#import <recentsd/_CRRecentsLibrary.h>
+#import <recentsd/CRXPCTransaction.h>
+#import <recentsd/CRRecentsMigrator.h>
+#import <recentsd/CRSQLiteConnection.h>
+#import <recentsd/CRPluginManager.h>
+#import <recentsd/CRPowerMonitor.h>
+#import <recentsd/CRPowerAssertion.h>
+#import <recentsd/CRSQLiteConnectionPool.h>
+#import <recentsd/_CRSQLiteConnectionWrapper.h>
+#import <recentsd/_ClauseGenerationContext.h>
+#import <recentsd/CRAddressHandlerIdentity.h>
+#import <recentsd/CRAddressHandler.h>
+#import <recentsd/CRMailAccountAdaptor.h>
+#import <recentsd/CRSearchMatcher.h>

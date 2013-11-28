@@ -1,0 +1,11 @@
+#import <MapWebKitPlugin/MapPluginOverlayPathOptions.h>
+#import <MapWebKitPlugin/MapPluginCircleOverlay.h>
+#import <MapWebKitPlugin/MapPluginPolylineOverlay.h>
+#import <MapWebKitPlugin/MapPluginPolygonOverlay.h>
+#import <MapWebKitPlugin/MapPluginAnnotationSO.h>
+#import <MapWebKitPlugin/MapPluginPointSO.h>
+#import <MapWebKitPlugin/MapPluginRectSO.h>
+#import <MapWebKitPlugin/MapPluginRegionSO.h>
+#import <MapWebKitPlugin/MapPluginUserLocationSO.h>
+#import <MapWebKitPlugin/MapPluginLocationCoordinateSO.h>
+#import <MapWebKitPlugin/MapPluginView.h>

@@ -1,0 +1,2 @@
+#import <AppleDigitalAVAdapterUpdater/AppleDigitalAVAdapterFirmwareUpdater.h>
+#import <AppleDigitalAVAdapterUpdater/AppleSTDP20XXUpdater.h>

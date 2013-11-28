@@ -1,0 +1,16 @@
+#import <FacebookSettings/SLFacebookAccountController.h>
+#import <FacebookSettings/SLFacebookRegistrationBirthDayDateTimeCell.h>
+#import <FacebookSettings/SLFacebookRegistrationBirthdayPrompt.h>
+#import <FacebookSettings/SLFacebookRegistrationBuddy.h>
+#import <FacebookSettings/SLFacebookRegistrationEmailPrompt.h>
+#import <FacebookSettings/SLFacebookRegistrationGenderPrompt.h>
+#import <FacebookSettings/SLFacebookDataclassActionPicker.h>
+#import <FacebookSettings/SLFacebookRegistrationInfoPrompt.h>
+#import <FacebookSettings/SLFacebookRegistrationNamePrompt.h>
+#import <FacebookSettings/SLFacebookRegistrationPasswordPrompt.h>
+#import <FacebookSettings/SLFacebookRegistrationLegalFooterView.h>
+#import <FacebookSettings/SLFacebookSettingsController.h>
+#import <FacebookSettings/SLFacebookContactUpdater.h>
+#import <FacebookSettings/SLFacebookAccountVerificationFooterView.h>
+#import <FacebookSettings/SLFacebookUpdateContactsFooterView.h>
+#import <FacebookSettings/SLFacebookMergeContactsFooterView.h>

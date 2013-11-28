@@ -1,0 +1,1 @@
+#import <TencentWeiboAuthenticationPlugin/TEAuthenticationPlugin.h>

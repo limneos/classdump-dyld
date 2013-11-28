@@ -1,0 +1,9 @@
+#import <Music/AXMusicGlue.h>
+#import <Music/MusicNSObjectAccessibility_super.h>
+#import <Music/MusicNSObjectAccessibility.h>
+#import <Music/MPScrollingTitlesViewAccessibility_super.h>
+#import <Music/MPScrollingTitlesViewAccessibility.h>
+#import <Music/MusicPlaylistEditingPickerOverlayAccessibility_super.h>
+#import <Music/MusicPlaylistEditingPickerOverlayAccessibility.h>
+#import <Music/MusicUINavigationButtonAccessibility_super.h>
+#import <Music/MusicUINavigationButtonAccessibility.h>

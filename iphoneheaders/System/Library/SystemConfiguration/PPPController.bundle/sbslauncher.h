@@ -1,0 +1,1 @@
+#import <sbslauncher/PluginDownloadObserver.h>

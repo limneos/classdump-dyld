@@ -1,0 +1,13 @@
+#import <libmecabra.dylib/MecabraCandidateInformationEntry.h>
+#import <libmecabra.dylib/MecabraCandidateCollectionFormatter.h>
+#import <libmecabra.dylib/CharacterInformationFormattedData.h>
+#import <libmecabra.dylib/MecabraFacemarkCandidate.h>
+#import <libmecabra.dylib/MecabraDatabaseListener.h>
+#import <libmecabra.dylib/MecabraCandidate.h>
+#import <libmecabra.dylib/MecabraCoreDataController.h>
+#import <libmecabra.dylib/MecabraCoreDataProperties.h>
+#import <libmecabra.dylib/MecabraDatabase.h>
+#import <libmecabra.dylib/MecabraDatabaseInterface.h>
+#import <libmecabra.dylib/MecabraLearningDictionaryDatabase.h>
+#import <libmecabra.dylib/SingleWordCandidateSharedData.h>
+#import <libmecabra.dylib/CharacterInformationRepository.h>

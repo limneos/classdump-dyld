@@ -1,0 +1,1 @@
+#import <MobileAsset/ASMigrator.h>

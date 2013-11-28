@@ -1,0 +1,1 @@
+#import <Spotlight/SPSpotlightManager.h>

@@ -1,0 +1,1 @@
+#import <GameCenterSetupAssistant/GKSetupAssistant.h>

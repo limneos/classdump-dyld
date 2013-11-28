@@ -1,0 +1,9 @@
+#import <AXRuntime/AXElementGrouper.h>
+#import <AXRuntime/AXVisualElementGrouper.h>
+#import <AXRuntime/AXElementGroupPruner.h>
+#import <AXRuntime/AXAttributedString.h>
+#import <AXRuntime/AXObserverElementPair.h>
+#import <AXRuntime/AXUIElement.h>
+#import <AXRuntime/AXElement.h>
+#import <AXRuntime/AXElementFetcher.h>
+#import <AXRuntime/AXElementGroup.h>
