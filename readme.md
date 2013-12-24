@@ -72,13 +72,12 @@ twitter: @limneos
 Licence
 -----------
 
-classdump-dyld is free of use, Copyright (c) 2013 Elias Limneos.
+classdump-dyld is Copyright (c) 2013 Elias Limneos, licensed under GPLv3.
 
 
 Environment
 -----------
-classdump-dyld works in a command line shell on any iOS 5+ device. Tested from iOS 5.x to iOS 7.x.
-There is Mac version too, but its still under tests.
+classdump-dyld works in a command line shell on any iOS 5+ device and Moc OS X. Tested from iOS 5.x to iOS 7.x and Mac OSX 10.8+.
 
 
 
