@@ -19,7 +19,7 @@ Features and options:
 
 
 You can find a recursive sample output on this project under iphoneheaders. 
-
+It also works on a Mac for dyld_shared_cache and some libraries
 
 
 -------------------------------
