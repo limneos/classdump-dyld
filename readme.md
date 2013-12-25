@@ -5,7 +5,7 @@ A class dumping command line tool that generates header files from app binaries,
 
 Eliminates the need to extract files from the dyld_shared_cache in order to class-dump them or get symbols.
 
-You can instantly classdump any compatible Mach-o file, either it is physically stored on disk or it resides in the dyld_shared_cache.
+You can instantly classdump any compatible Mach-o file, either if it is physically stored on disk or it resides in the dyld_shared_cache.
 
 Features and options:
 	
