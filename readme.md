@@ -1,6 +1,8 @@
 classdump-dyld
 ==============
 
+Note: Currently, classdump-dyld cannot dump 64 bit executables. An update will be commited soon to fix this.
+
 A class dumping command line tool that generates header files from app binaries, libraries, frameworks, bundles or the whole dyld_shared_cache.
 
 Eliminates the need to extract files from the dyld_shared_cache in order to class-dump them or get symbols.
