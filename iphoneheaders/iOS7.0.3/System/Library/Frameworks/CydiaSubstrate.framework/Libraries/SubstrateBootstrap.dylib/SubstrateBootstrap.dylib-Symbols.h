@@ -1,7 +1,0 @@
-dyld_stub_binding_helper
-__dyld_func_lookup
-__GLOBAL__I_a
-dyld__mach_header
-__exit
-_dlopen
-_getenv

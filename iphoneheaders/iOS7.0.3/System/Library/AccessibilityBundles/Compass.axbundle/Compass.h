@@ -1,9 +1,0 @@
-#import <Compass/CompassPageViewControllerAccessibility_super.h>
-#import <Compass/CompassPageViewControllerAccessibility.h>
-#import <Compass/AXCompassGlue.h>
-#import <Compass/LevelPageViewControllerAccessibility_super.h>
-#import <Compass/LevelPageViewControllerAccessibility.h>
-#import <Compass/UIPageControlCompassAccessibility_super.h>
-#import <Compass/UIPageControlCompassAccessibility.h>
-#import <Compass/UIViewCompassAccessibility_super.h>
-#import <Compass/UIViewCompassAccessibility.h>

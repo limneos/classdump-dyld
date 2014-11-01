@@ -1,1 +1,0 @@
-#import <Camera/CameraApplication.h>

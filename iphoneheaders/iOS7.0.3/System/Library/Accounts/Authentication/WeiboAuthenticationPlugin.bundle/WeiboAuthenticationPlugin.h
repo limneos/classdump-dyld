@@ -1,1 +1,0 @@
-#import <WeiboAuthenticationPlugin/WEAuthenticationPlugin.h>

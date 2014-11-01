@@ -1,2 +1,0 @@
-#import <PassesBulletinBoardPlugin/WLBulletinBoardDataProviderFactory.h>
-#import <PassesBulletinBoardPlugin/WLBulletinBoardDataProvider.h>

@@ -1,1 +1,0 @@
-#import <iAdOptOut/iAdOptOutAppDelegate.h>

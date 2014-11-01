@@ -1,3 +1,0 @@
-_N90APVersionNumber
-_N90APVersionString
-dyld_stub_binder

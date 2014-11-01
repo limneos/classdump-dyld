@@ -1,2 +1,0 @@
-___CFStringEncodingGetThaiConverterDefinition
-dyld_stub_binder

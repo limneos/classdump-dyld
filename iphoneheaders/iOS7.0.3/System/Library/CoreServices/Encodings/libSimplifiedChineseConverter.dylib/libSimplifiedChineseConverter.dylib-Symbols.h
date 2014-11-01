@@ -1,5 +1,0 @@
-___CFStringEncodingGetSimplifiedChineseConverterDefinition
-___stack_chk_fail
-___stack_chk_guard
-_strlen
-dyld_stub_binder

@@ -1,1 +1,0 @@
-#import <VimeoAuthenticationPlugin/SLVimeoAuthenticationPlugin.h>

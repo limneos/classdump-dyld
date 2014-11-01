@@ -1,1 +1,0 @@
-#import <MadridSetupAssistantBundle/FTRegMadridServiceDelegate.h>

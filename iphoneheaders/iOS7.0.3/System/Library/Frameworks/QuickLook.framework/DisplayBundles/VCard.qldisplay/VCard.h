@@ -1,1 +1,0 @@
-#import <VCard/QLVCardisplayBundle.h>

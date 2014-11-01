@@ -1,1 +1,0 @@
-#import <TencentWeiboAccessPlugin/SLTencentWeiboAccountAccessPlugin.h>

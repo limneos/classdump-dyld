@@ -1,3 +1,0 @@
-_AppGeniusVersionNumber
-_AppGeniusVersionString
-dyld_stub_binder

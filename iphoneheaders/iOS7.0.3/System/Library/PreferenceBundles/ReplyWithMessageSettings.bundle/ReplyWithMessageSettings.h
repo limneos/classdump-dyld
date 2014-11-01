@@ -1,2 +1,0 @@
-#import <ReplyWithMessageSettings/PhoneSettingsReplyWithMessageController.h>
-#import <ReplyWithMessageSettings/PhoneSettingsReplyWithMessageBundleController.h>

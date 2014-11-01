@@ -1,2 +1,0 @@
-___CFStringEncodingGetArabicConverterDefinition
-dyld_stub_binder

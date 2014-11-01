@@ -1,1 +1,0 @@
-#import <MobileStore/MSApplication.h>
