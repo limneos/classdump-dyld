@@ -1,7 +1,7 @@
 classdump-dyld
 ==============
 
-Note: Currently, classdump-dyld cannot dump 64 bit executables. An update will be commited soon to fix this.
+Added 64bit executables dumping 
 
 A class dumping command line tool that generates header files from app binaries, libraries, frameworks, bundles or the whole dyld_shared_cache.
 
@@ -47,6 +47,8 @@ It also works on a Mac for dyld_shared_cache and some libraries
 			-r   <sourcepath> Recursively dump any compatible Mach-O file found in the given path (requires -o) 
 			-s   In a recursive dump, skip header files already found in the same output directory 
 		
+		Debug: 
+			-D   Print debug info for troubleshooting
 		Examples:
     		Example 1: classdump-dyld -o outdir /System/Library/Frameworks/UIKit.framework
     		Example 2: classdump-dyld -o outdir /usr/libexec/backboardd
