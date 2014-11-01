@@ -7,6 +7,8 @@ A class dumping command line tool that generates header files from app binaries,
 
 Eliminates the need to extract files from the dyld_shared_cache in order to class-dump them or get symbols.
 
+Mass-dumps whole dyld_shared_cache or directories containing any mach-o file recursively.
+
 You can instantly classdump any compatible Mach-o file, either if it is physically stored on disk or it resides in the dyld_shared_cache.
 
 Features and options:
@@ -76,12 +78,12 @@ twitter: @limneos
 Licence
 -----------
 
-classdump-dyld is Copyright (c) 2013 Elias Limneos, licensed under GPLv3.
+classdump-dyld is Copyright (c) 2013-2014 Elias Limneos, licensed under GPLv3.
 
 
 Environment
 -----------
-classdump-dyld works in a command line shell on any iOS 5+ device and Mac OS X. Tested from iOS 5.x to iOS 7.x and Mac OSX 10.8+.
+classdump-dyld works in a command line shell on any iOS 5+ device and Mac OS X. Tested from iOS 5.x to iOS 8.x and Mac OSX 10.8+.
 
 
 
