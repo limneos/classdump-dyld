@@ -77,7 +77,7 @@ static BOOL arch64(){
 
 static BOOL priorToiOS7(){
 	
-	return objc_getClass("NSLayoutManager")==NULL; // non-existent class until iOS 7
+	return ![objc_getClass("NSProcessInfo") instancesRespondToSelector:@selector(endActivity:)];
 
 }
 
@@ -1540,7 +1540,7 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 		}
 		
 		// Some more blacklisted classes 
-		if (strcmp(names[i],"AXBackBoardGlue")==0 || strcmp(names[i],"TMBackgroundTaskAgent")==0){
+		if (!strcmp(names[i],"CLLocationProviderAdapter") || strcmp(names[i],"AXBackBoardGlue")==0 || strcmp(names[i],"TMBackgroundTaskAgent")==0){
 			continue;
 		}
 
