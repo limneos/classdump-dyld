@@ -78,7 +78,7 @@ static BOOL arch64(){
 
 static BOOL priorToiOS7(){
 	
-	return objc_getClass("NSLayoutManager")==NULL; // non-existent class until iOS 7
+	return ![objc_getClass("NSProcessInfo") instancesRespondToSelector:@selector(endActivity:)];
 
 }
 
@@ -1829,7 +1829,7 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 		}
 
 		// Some more blacklisted classes for iOS before iOS 7		
-		if (priorToiOS7() && (!strcmp(names[i],"VKRoadGroup") || !strcmp(names[i],"SBApplication") || !strcmp(names[i],"SBSMSApplication") || !strcmp(names[i],"SBFakeNewsstandApplication") || !strcmp(names[i],"SBWebApplication") || !strcmp(names[i],"SBNewsstandApplication"))){
+		if (priorToiOS7() && (!strcmp(names[i],"VKRoadGroup") || strcmp(names[i],"SBApplication")==0 || !strcmp(names[i],"SBSMSApplication") || !strcmp(names[i],"SBFakeNewsstandApplication") || !strcmp(names[i],"SBWebApplication") || !strcmp(names[i],"SBNewsstandApplication"))){
 			continue;
 		}
 		
@@ -1839,6 +1839,7 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 		if (!strcmp(names[i],"WebPreferences") || !strcmp(names[i],"WebFrameView") || !strcmp(names[i],"VMServiceClient") || !strcmp(names[i],"VKClassicGlobeCanvas") || !strcmp(names[i],"VKLabelModel") || !strcmp(names[i],"UICTFont") || !strcmp(names[i],"UIFont") || !strcmp(names[i],"NSFont") || !strcmp(names[i],"PLImageView") || !strcmp(names[i],"PLPolaroidImageView") || !strcmp(names[i],"MFSMTPConnection") || !strcmp(names[i],"MFConnection") || !strcmp(names[i],"AXSpringBoardSettingsLoader") || !strcmp(names[i],"AXUIActiveWindow")){
 			continue;
 		}
+		
 		
 		
 		if (writeToDisk){
