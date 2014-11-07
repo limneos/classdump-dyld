@@ -1547,7 +1547,7 @@ NSString * generateMethodLines(Class someclass,BOOL isInstanceMethod,NSMutableAr
 
 static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL isRecursive,BOOL buildOriginalDirs,BOOL simpleHeader,BOOL skipAlreadyFound){
 
-	
+
 	dyld_all_image_infos = _dyld_get_all_image_infos();
     dyld_all_image_infos = _dyld_get_all_image_infos();
 	for(int i=0; i<dyld_all_image_infos->infoArrayCount; i++) {
@@ -1604,6 +1604,7 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 	NSString *writeDir=buildOriginalDirs ? (isFramework ? [NSString stringWithFormat:@"%@/%@%@",outputDir,targetDir,headersFolder] : [NSString stringWithFormat:@"%@/%@",outputDir,targetDir])  : outputDir;
 	writeDir=[writeDir stringByReplacingOccurrencesOfString:@"///" withString:@"/"];
 	writeDir=[writeDir stringByReplacingOccurrencesOfString:@"//" withString:@"/"];
+
 	[writeDir retain];
 	
 	[processedImages addObject:[NSString stringWithCString:image encoding:NSUTF8StringEncoding]];
@@ -2369,7 +2370,7 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 				writeToDisk=YES;
 				[argumentsToUse removeObject:arg];
 				[argumentsToUse removeObject:outputDir];
-				
+
 				
 			}
 			
@@ -2432,15 +2433,22 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 			NSFileManager *fileman=[[NSFileManager alloc ] init];	
 			NSString *imageString=nil;	
 			if (outputDir){
+
 				[fileman createDirectoryAtPath:outputDir withIntermediateDirectories:YES attributes:nil error:&error];
 				if (error){
 					NSLog(@"Could not create directory %@. Check permissions.",outputDir);
 					exit(EXIT_FAILURE);
 				}
 				[fileman changeCurrentDirectoryPath:currentDir];
+
 				[fileman changeCurrentDirectoryPath:outputDir];
-				outputDir=[fileman currentDirectoryPath];
+
+				outputDir=[fileman currentDirectoryPath]!=nil ? [fileman currentDirectoryPath] : outputDir;
 				
+				if (![fileman currentDirectoryPath]){
+					printf("  Error: Injected application cannot write to %s, please change your output directory (you can use your user directory, e.g. /var/root/%s )",[outputDir UTF8String],[[outputDir lastPathComponent] UTF8String]);
+					exit(0); // exit injected application without error
+				}
 				imageString=[NSString stringWithCString:image encoding:NSUTF8StringEncoding];
 			
 				if ([imageString rangeOfString:@"/"].location!=0){ // not an absolute path
@@ -2481,18 +2489,22 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 
 						if (thing.length>0){
 							NSError *createError=nil;
-							//NSError *writeError=nil;
 						
 							NSString *filePath=[thing substringToIndex:[thing rangeOfString:@"&&&&&"].location];
 							thing=[thing substringFromIndex:[thing rangeOfString:@"&&&&&"].location+5];
 							NSString *dirtosave=[filePath stringByDeletingLastPathComponent];
+
 							loadBar(i,total, 100, 50,[[filePath lastPathComponent] UTF8String]);   
 							[[NSFileManager defaultManager] createDirectoryAtPath:dirtosave withIntermediateDirectories:YES attributes:nil error:&createError];
 							FILE * pFile;
 							pFile = fopen ([filePath UTF8String],"w");
+							
 							if (pFile!=NULL){
 								fputs ([thing UTF8String],pFile);
 								fclose (pFile);
+							}
+							else{
+							//perror([filePath UTF8String]);
 							}
 						}
 						
