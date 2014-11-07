@@ -49,8 +49,10 @@ It also works on a Mac for dyld_shared_cache and some libraries
 			-r   <sourcepath> Recursively dump any compatible Mach-O file found in the given path (requires -o) 
 			-s   In a recursive dump, skip header files already found in the same output directory 
 		
-		Debug: 
-			-D   Print debug info for troubleshooting
+		Miscellaneous: 
+			-D   Enable debug printing for troubleshooting errors
+			-e   dpopen 32Bit executables instead of injecting them (iOS 5+, use if defaults fail.This will skip any 64bit executable) 
+			-a   In a recursive dump, include 'Applications' directories (skipped by default)
 		Examples:
     		Example 1: classdump-dyld -o outdir /System/Library/Frameworks/UIKit.framework
     		Example 2: classdump-dyld -o outdir /usr/libexec/backboardd
