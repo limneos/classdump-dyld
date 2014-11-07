@@ -32,6 +32,7 @@ static BOOL inDebug=NO;
 static uint8_t *_cacheData;
 static NSString *classID=nil;
 static BOOL addHeadersFolder=NO;
+static BOOL shouldDLopen32BitExecutables=NO;
 static BOOL shouldImportStructs=0;
 static struct cache_header *_cacheHead;
 static NSMutableArray *allStructsFound=nil;
@@ -44,8 +45,8 @@ const struct dyld_all_image_infos *dyld_all_image_infos;
 extern "C" struct dyld_all_image_infos* _dyld_get_all_image_infos();
 NSString * propertyLineGenerator(NSString *attributes,NSString *name);
 NSString * commonTypes(NSString *atype,NSString **inName,BOOL inIvarList);
-static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL recursive,BOOL simpleHeader,BOOL skipAlreadyFound);
-extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL isRecursive,BOOL buildOriginalDirs,BOOL simpleHeader,BOOL skipAlreadyFound);
+static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL recursive,BOOL simpleHeader,BOOL skipAlreadyFound,BOOL skipApplications);
+extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL isRecursive,BOOL buildOriginalDirs,BOOL simpleHeader,BOOL skipAlreadyFound,BOOL skipApplications);
 
 @interface NSArray (extras)
 -(id)reversedArray;
@@ -61,15 +62,71 @@ struct cache_header {
         uint64_t dyldaddr;
 };
 
+
+BOOL isMachOExecutable(const char *image){
+
+	FILE *machoFile = fopen (image, "rb");
+	if (machoFile == 0){
+		return NO;
+	}
+	//#ifdef __LP64__
+	mach_header_64 machHeader;
+	//#else
+	//mach_header machHeader;
+	//#endif
+  
+	int n = fread (&machHeader, sizeof (machHeader), 1, machoFile);
+	if (n != 1 ){
+		fclose(machoFile);
+		return NO;
+	}
+	BOOL isExec=machHeader.filetype == MH_EXECUTE;
+	fclose(machoFile);
+  	return isExec;
+
+}
+
+BOOL is64BitMachO(const char *image){
+	
+	FILE *machoFile = fopen (image, "rb");
+	if (machoFile == 0){
+		fclose(machoFile);
+	 	return NO;
+	}
+	mach_header_64 machHeader;
+	int n = fread (&machHeader, sizeof (machHeader), 1, machoFile);
+  	if (n != 1){
+	  	fclose(machoFile);
+  		return NO;
+  	}
+  	BOOL is64=machHeader.magic==MH_MAGIC_64;
+  	fclose(machoFile);
+	return is64;
+
+}
+
+BOOL fileExistsOnDisk(const char *image){
+	
+	FILE *aFile = fopen (image, "r");
+	BOOL exists=aFile != 0;
+	fclose(aFile);
+	return exists;
+
+}
  
 static BOOL arch64(){
 	
-	size_t size;
-	sysctlbyname("hw.cpu64bit_capable", NULL, &size, NULL, 0);
-	BOOL cpu64bit; 
-	sysctlbyname("hw.cpu64bit_capable", &cpu64bit, &size, NULL, 0);
-	return cpu64bit;
-	
+	//size_t size;
+	//sysctlbyname("hw.cpu64bit_capable", NULL, &size, NULL, 0);
+	//BOOL cpu64bit; 
+	//sysctlbyname("hw.cpu64bit_capable", &cpu64bit, &size, NULL, 0);
+	//return cpu64bit;
+
+	#ifdef __LP64__
+	return YES;
+	#endif
+	return NO;
+
 }
 
 
@@ -128,8 +185,10 @@ void printHelp(){
 	printf("        -r   <sourcepath> Recursively dump any compatible Mach-O file found in the given path\n");
 	printf("        -s   In a recursive dump, skip header files already found in the same output directory\n\n");
 
-	printf("    Debug\n");
+	printf("    Miscellaneous\n");
 	printf("        -D   Enable debug printing for troubleshooting errors\n");
+	printf("        -e   dpopen 32Bit executables instead of injecting them (iOS 5+, use if defaults fail.This will skip any 64bit executable) \n"); 
+	printf("        -a   In a recursive dump, include 'Applications' directories (skipped by default) \n\n"); 
 
 	printf("    Examples:\n");
 	printf("        Example 1: classdump-dyld -o outdir /System/Library/Frameworks/UIKit.framework\n");
@@ -412,7 +471,7 @@ NSString * propertyLineGenerator(NSString *attributes,NSString *name){
 }
 
 /****** Protocol Parser ******/
-
+/*
 NSString * buildProtocolFile(Protocol *currentProtocol){
 	
 	NSString * protocolsMethodsString=@"";
@@ -493,10 +552,287 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 		free(protMeths);
 	}
 	
-	return [protocolsMethodsString stringByAppendingString:@"@end\n\n"];
+	//FIX EQUAL TYPES OF PROPERTIES AND METHODS 
+	NSArray *propertiesArray=propertiesArrayFromString(protPropertiesString);
+	[protPropertiesString release];
+	NSArray *lines=[protocolsMethodsString componentsSeparatedByString:@"\n"];
+	NSMutableString *finalString=[[NSMutableString alloc] init];
+	for (NSString *line in lines){
+		 
+			if (line.length>0 && ([line rangeOfString:@"-"].location==0 || [line rangeOfString:@"+"].location==0)){
+				NSString *methodInLine=[line substringFromIndex:[line rangeOfString:@")"].location+1];
+				methodInLine=[methodInLine substringToIndex:[methodInLine rangeOfString:@";"].location];
+				for (NSDictionary *dict in propertiesArray){
+					NSString *propertyName=[dict objectForKey:@"name"];
+					if ([methodInLine rangeOfString:@"set"].location!=NSNotFound){
+						NSString *firstCapitalized=[[propertyName substringToIndex:1] capitalizedString];
+						NSString *capitalizedFirst=[firstCapitalized stringByAppendingString:[propertyName substringFromIndex:1]];
+						if ([methodInLine isEqual:[NSString stringWithFormat:@"set%@",capitalizedFirst] ]){
+							// replace setter	
+							NSString *newLine=[line substringToIndex:[line rangeOfString:@":("].location+2];
+							newLine=[newLine stringByAppendingString:[dict objectForKey:@"type"]];
+							newLine=[newLine stringByAppendingString:[line substringFromIndex:[line rangeOfString:@")" options:4].location]];
+							line=newLine;
+						}
+					}
+					if ([methodInLine isEqual:propertyName]){
+						NSString *newLine=[line substringToIndex:[line rangeOfString:@"("].location+1];
+						newLine=[newLine stringByAppendingString:[NSString stringWithFormat:@"%@)%@;",[dict objectForKey:@"type"],[dict objectForKey:@"name"]]];
+						line=newLine;
+					}
+				}
+			
+			}
+			[finalString appendString:[line stringByAppendingString:@"\n"]];
+		 
+	}
+	
+	
+	if ([classesInProtocol count]>0){
+		 
+		NSMutableString *classesFoundToAdd=[[NSMutableString alloc] init];
+		[classesFoundToAdd appendString:@"@class "];
+		for (int f=0; f<classesInProtocol.count; f++){
+			NSString *classFound=[classesInProtocol objectAtIndex:f];
+			if (f<classesInProtocol.count-1){
+				[classesFoundToAdd appendString:[NSString stringWithFormat:@"%@, ",classFound]];
+			}
+			else{
+				[classesFoundToAdd appendString:[NSString stringWithFormat:@"%@;",classFound]];
+			}
+		}
+		[classesFoundToAdd appendString:@"\n\n"];
+		[classesFoundToAdd appendString:finalString];
+		[finalString release];
+		finalString=[classesFoundToAdd mutableCopy];
+		[classesFoundToAdd release];		
+	}
+	[classesInProtocol release];
+	[protocolsMethodsString release];
+	[finalString appendString:@"@end\n\n"];
+	return [finalString autorelease];
+	
+	
+	//return [protocolsMethodsString stringByAppendingString:@"@end\n\n"];
 
 }
+*/
 
+
+/****** Properties Combined Array (for fixing non-matching types)   ******/
+
+static NSMutableArray * propertiesArrayFromString(NSString *propertiesString){
+
+	NSMutableArray *propertiesExploded=[[propertiesString componentsSeparatedByString:@"\n"] mutableCopy];
+	NSMutableArray *typesAndNamesArray=[NSMutableArray array];
+
+	for (NSString *string in propertiesExploded){		
+	
+		if (string.length<1){
+			continue;
+		}	 
+		
+		int startlocation=[string rangeOfString:@")"].location;
+		int endlocation=[string rangeOfString:@";"].location;
+		if ([string rangeOfString:@";"].location==NSNotFound || [string rangeOfString:@")"].location==NSNotFound){
+			continue;
+		}
+		
+		NSString *propertyTypeFound=[string substringWithRange:NSMakeRange(startlocation+1,endlocation-startlocation-1)];
+		int firstSpaceLocationBackwards=[propertyTypeFound rangeOfString:@" " options:NSBackwardsSearch].location;
+		if ([propertyTypeFound rangeOfString:@" " options:NSBackwardsSearch].location==NSNotFound){
+			continue;
+		}
+		
+		NSMutableDictionary *typesAndNames=[NSMutableDictionary dictionary];
+		
+		NSString *propertyNameFound=[propertyTypeFound substringFromIndex:firstSpaceLocationBackwards+1];
+		propertyTypeFound=[propertyTypeFound substringToIndex:firstSpaceLocationBackwards];
+		//propertyTypeFound=[propertyTypeFound stringByReplacingOccurrencesOfString:@" " withString:@""];
+		if ([propertyTypeFound rangeOfString:@" "].location==0){
+			propertyTypeFound=[propertyTypeFound substringFromIndex:1];
+		}
+		propertyNameFound=[propertyNameFound stringByReplacingOccurrencesOfString:@" " withString:@""];
+		
+		[typesAndNames setObject:propertyTypeFound forKey:@"type"];
+		[typesAndNames setObject:propertyNameFound forKey:@"name"];
+		[typesAndNamesArray addObject:typesAndNames];
+
+	}
+	[propertiesExploded release];
+	return typesAndNamesArray;
+}
+
+
+
+/****** Protocol Parser ******/
+
+NSString * buildProtocolFile(Protocol *currentProtocol){
+	
+	NSMutableString * protocolsMethodsString=[[NSMutableString alloc] init];
+
+	NSString *protocolName=[NSString stringWithCString:protocol_getName(currentProtocol) encoding:NSUTF8StringEncoding];
+	[protocolsMethodsString appendString:[NSString stringWithFormat:@"\n@protocol %@",protocolName]];
+	NSMutableArray *classesInProtocol=[[NSMutableArray alloc] init];
+	
+	unsigned int outCount=0;
+	Protocol ** protList=protocol_copyProtocolList(currentProtocol,&outCount);
+	if (outCount>0){
+		[protocolsMethodsString appendString:@" <"];
+	}
+	for (int p=0; p<outCount; p++){
+		NSString *end= p==outCount-1 ? [@"" retain] : [@"," retain];
+		[protocolsMethodsString appendString:[NSString stringWithFormat:@"%s%@",protocol_getName(protList[p]),end]];
+		[end release];
+	}
+	if (outCount>0){
+		[protocolsMethodsString appendString:@">"];
+	}
+	free(protList);
+	
+	NSMutableString *protPropertiesString=[[NSMutableString alloc] init];
+	unsigned int protPropertiesCount;
+	objc_property_t * protPropertyList=protocol_copyPropertyList(currentProtocol,&protPropertiesCount);
+	for (int xi=0; xi<protPropertiesCount; xi++){
+		 
+			const char *propname=property_getName(protPropertyList[xi]);
+			const char *attrs=property_getAttributes(protPropertyList[xi]);
+		
+		
+			NSCharacterSet *parSet=[NSCharacterSet characterSetWithCharactersInString:@"()"];
+			NSString *attributes=[[NSString stringWithCString:attrs encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:parSet];
+			NSMutableArray *attrArr=(NSMutableArray *)[attributes componentsSeparatedByString:@","];
+			NSString *type=[attrArr objectAtIndex:0] ;
+	
+			type=[type stringByReplacingCharactersInRange:NSMakeRange(0,1) withString:@""] ; 
+			if ([type rangeOfString:@"@"].location==0 && [type rangeOfString:@"\""].location!=NSNotFound){ //E.G. @"NSTimer"
+				type=[type stringByReplacingOccurrencesOfString:@"\"" withString:@""];
+				type=[type stringByReplacingOccurrencesOfString:@"@" withString:@""];
+				type=[type stringByAppendingString:@" *"] ;
+				NSString *classFoundInProperties=[type stringByReplacingOccurrencesOfString:@" *" withString:@""];
+				if (![classesInProtocol containsObject:classFoundInProperties] && [classFoundInProperties rangeOfString:@"<"].location==NSNotFound){
+					[classesInProtocol addObject:classFoundInProperties];
+				}
+			}
+		
+		
+		
+				
+			NSString *newString=propertyLineGenerator([NSString stringWithCString:attrs encoding:NSUTF8StringEncoding],[NSString stringWithCString:propname encoding:NSUTF8StringEncoding]);
+			if ([protPropertiesString rangeOfString:newString].location==NSNotFound){
+				[protPropertiesString appendString:newString];
+			}
+			[newString release];
+		
+
+	}
+	[protocolsMethodsString appendString:protPropertiesString];
+	
+	free(protPropertyList);
+	
+	for (int acase=0; acase<4; acase++){
+		 
+			unsigned int protocolMethodsCount=0;
+			BOOL isRequiredMethod=acase<2 ? NO : YES;
+			BOOL isInstanceMethod=(acase==0 || acase==2) ? NO : YES;
+								
+			objc_method_description *protMeths=protocol_copyMethodDescriptionList(currentProtocol, isRequiredMethod, isInstanceMethod, &protocolMethodsCount);
+			for (unsigned gg=0; gg<protocolMethodsCount; gg++){
+				if (acase<2 && [protocolsMethodsString rangeOfString:@"@optional"].location==NSNotFound){
+					[protocolsMethodsString appendString:@"\n@optional\n"];
+				}
+				if (acase>1 && [protocolsMethodsString rangeOfString:@"@required"].location==NSNotFound){
+					[protocolsMethodsString appendString:@"\n@required\n"];
+				}
+				NSString *startSign=isInstanceMethod==NO ? @"+" : @"-";
+				objc_method_description selectorsAndTypes=protMeths[gg];
+				SEL selector=selectorsAndTypes.name;
+				char *types=selectorsAndTypes.types;
+				NSString *protSelector=NSStringFromSelector(selector);
+				NSString *finString=@"";
+				NSMethodSignature *signature=[NSMethodSignature cd_signatureWithObjCTypes:types];
+			
+				NSString *returnType=commonTypes([NSString stringWithCString:[signature methodReturnType] encoding:NSUTF8StringEncoding],nil,NO);
+				NSArray *selectorsArray=[protSelector componentsSeparatedByString:@":"];
+				if (selectorsArray.count>1){
+					int argCount=0;
+					for (unsigned ad=2;ad<[signature numberOfArguments]; ad++){	
+						argCount++;
+						NSString *space=ad==[signature numberOfArguments]-1 ? @"" : @" ";
+						finString=[finString stringByAppendingString:[NSString stringWithFormat:@"%@:(%@)arg%d%@" ,[selectorsArray objectAtIndex:ad-2],commonTypes([NSString stringWithCString:[signature cd_getArgumentTypeAtIndex:ad] encoding:NSUTF8StringEncoding],nil,NO),argCount,space]];
+					}				
+				}
+				else{
+					finString=[finString stringByAppendingString:[NSString stringWithFormat:@"%@" ,[selectorsArray objectAtIndex:0]] ];	
+				}
+				finString=[finString stringByAppendingString:@";"];
+				[protocolsMethodsString appendString:[NSString stringWithFormat:@"%@(%@)%@\n",startSign,returnType,finString]];		
+			}
+			free(protMeths);
+		
+	}
+	
+	//FIX EQUAL TYPES OF PROPERTIES AND METHODS 
+	NSArray *propertiesArray=propertiesArrayFromString(protPropertiesString);
+	[protPropertiesString release];
+	NSArray *lines=[protocolsMethodsString componentsSeparatedByString:@"\n"];
+	NSMutableString *finalString=[[NSMutableString alloc] init];
+	for (NSString *line in lines){
+		 
+			if (line.length>0 && ([line rangeOfString:@"-"].location==0 || [line rangeOfString:@"+"].location==0)){
+				NSString *methodInLine=[line substringFromIndex:[line rangeOfString:@")"].location+1];
+				methodInLine=[methodInLine substringToIndex:[methodInLine rangeOfString:@";"].location];
+				for (NSDictionary *dict in propertiesArray){
+					NSString *propertyName=[dict objectForKey:@"name"];
+					if ([methodInLine rangeOfString:@"set"].location!=NSNotFound){
+						NSString *firstCapitalized=[[propertyName substringToIndex:1] capitalizedString];
+						NSString *capitalizedFirst=[firstCapitalized stringByAppendingString:[propertyName substringFromIndex:1]];
+						if ([methodInLine isEqual:[NSString stringWithFormat:@"set%@",capitalizedFirst] ]){
+							// replace setter	
+							NSString *newLine=[line substringToIndex:[line rangeOfString:@":("].location+2];
+							newLine=[newLine stringByAppendingString:[dict objectForKey:@"type"]];
+							newLine=[newLine stringByAppendingString:[line substringFromIndex:[line rangeOfString:@")" options:4].location]];
+							line=newLine;
+						}
+					}
+					if ([methodInLine isEqual:propertyName]){
+						NSString *newLine=[line substringToIndex:[line rangeOfString:@"("].location+1];
+						newLine=[newLine stringByAppendingString:[NSString stringWithFormat:@"%@)%@;",[dict objectForKey:@"type"],[dict objectForKey:@"name"]]];
+						line=newLine;
+					}
+				}
+			
+			}
+			[finalString appendString:[line stringByAppendingString:@"\n"]];
+		 
+	}
+	
+	
+	if ([classesInProtocol count]>0){
+		 
+		NSMutableString *classesFoundToAdd=[[NSMutableString alloc] init];
+		[classesFoundToAdd appendString:@"@class "];
+		for (int f=0; f<classesInProtocol.count; f++){
+			NSString *classFound=[classesInProtocol objectAtIndex:f];
+			if (f<classesInProtocol.count-1){
+				[classesFoundToAdd appendString:[NSString stringWithFormat:@"%@, ",classFound]];
+			}
+			else{
+				[classesFoundToAdd appendString:[NSString stringWithFormat:@"%@;",classFound]];
+			}
+		}
+		[classesFoundToAdd appendString:@"\n\n"];
+		[classesFoundToAdd appendString:finalString];
+		[finalString release];
+		finalString=[classesFoundToAdd mutableCopy];
+		[classesFoundToAdd release];		
+	}
+	[classesInProtocol release];
+	[protocolsMethodsString release];
+	[finalString appendString:@"@end\n\n"];
+	return finalString;
+
+}
 
 
 static BOOL hasMalformedID(NSString *parts){
@@ -1099,7 +1435,7 @@ NSString * commonTypes(NSString *atype,NSString **inName,BOOL inIvarList){
 	}
 	
 	if ([atype isEqual:@"^?"]){
-		atype=@"/*function pointer*/ void*";
+		atype=@"/*function pointer*/void*";
 	}
 		
 	
@@ -1258,7 +1594,7 @@ NSString * commonTypes(NSString *atype,NSString **inName,BOOL inIvarList){
 	if ([atype isEqual:  @"i"]){ atype = @"int"; }
 	if ([atype isEqual:  @"f"]){ atype = @"float"; }
 	
-	if ([atype isEqual:  @"c"]){ atype = @"BOOL"; }
+	if ([atype isEqual:  @"c"]){ atype = @"char"; }
 	if ([atype isEqual:  @"s"]){ atype = @"short"; }
 	if ([atype isEqual:  @"I"]){ atype = @"unsigned"; }
 	if ([atype isEqual:  @"l"]){ atype = @"long"; }
@@ -1269,14 +1605,14 @@ NSString * commonTypes(NSString *atype,NSString **inName,BOOL inIvarList){
 	if ([atype isEqual:  @"Q"]){ atype = @"unsigned long long"; }
 	//if ([atype isEqual:  @"Q"]){ atype = @"uint64_t"; }
 
-	if ([atype isEqual:  @"B"]){ atype = @"bool"; }
+	if ([atype isEqual:  @"B"]){ atype = @"BOOL"; }
 	if ([atype isEqual:  @"v"]){ atype = @"void"; }
 	if ([atype isEqual:  @"*"]){ atype = @"char*"; }
 	if ([atype isEqual:  @":"]){ atype = @"SEL"; }
-	if ([atype isEqual:  @"?"]){ atype = @"/*function pointer*/ void*"; }
+	if ([atype isEqual:  @"?"]){ atype = @"/*function pointer*/void*"; }
 	if ([atype isEqual:  @"#"]){ atype = @"Class"; }
 	if ([atype isEqual:  @"@"]){ atype = @"id"; }
-	if ([atype isEqual:  @"@?"]){ atype = @"/*^block*/ id"; }
+	if ([atype isEqual:  @"@?"]){ atype = @"/*^block*/id"; }
 	if ([atype isEqual:  @"Vv"]){ atype = @"void"; }
 	if ([atype isEqual:  @"rv"]){ atype = @"const void*"; }
 
@@ -1401,56 +1737,21 @@ NSString * generateMethodLines(Class someclass,BOOL isInstanceMethod,NSMutableAr
 
 
 
-/****** Properties Combined Array (for fixing non-matching types)   ******/
 
-static NSMutableArray * propertiesArrayFromString(NSString *propertiesString){
-
-	NSMutableArray *propertiesExploded=[[propertiesString componentsSeparatedByString:@"\n"] mutableCopy];
-	NSMutableArray *typesAndNamesArray=[NSMutableArray array];
-
-	for (NSString *string in propertiesExploded){		
-	
-		if (string.length<1){
-			continue;
-		}	 
-		
-		int startlocation=[string rangeOfString:@")"].location;
-		int endlocation=[string rangeOfString:@";"].location;
-		if ([string rangeOfString:@";"].location==NSNotFound || [string rangeOfString:@")"].location==NSNotFound){
-			continue;
-		}
-		
-		NSString *propertyTypeFound=[string substringWithRange:NSMakeRange(startlocation+1,endlocation-startlocation-1)];
-		int firstSpaceLocationBackwards=[propertyTypeFound rangeOfString:@" " options:NSBackwardsSearch].location;
-		if ([propertyTypeFound rangeOfString:@" " options:NSBackwardsSearch].location==NSNotFound){
-			continue;
-		}
-		
-		NSMutableDictionary *typesAndNames=[NSMutableDictionary dictionary];
-		
-		NSString *propertyNameFound=[propertyTypeFound substringFromIndex:firstSpaceLocationBackwards+1];
-		propertyTypeFound=[propertyTypeFound substringToIndex:firstSpaceLocationBackwards];
-		//propertyTypeFound=[propertyTypeFound stringByReplacingOccurrencesOfString:@" " withString:@""];
-		if ([propertyTypeFound rangeOfString:@" "].location==0){
-			propertyTypeFound=[propertyTypeFound substringFromIndex:1];
-		}
-		propertyNameFound=[propertyNameFound stringByReplacingOccurrencesOfString:@" " withString:@""];
-		
-		[typesAndNames setObject:propertyTypeFound forKey:@"type"];
-		[typesAndNames setObject:propertyNameFound forKey:@"name"];
-		[typesAndNamesArray addObject:typesAndNames];
-
+int locationOfString(const char *haystack, const char *needle){
+	char * found = strstr( haystack, needle );
+	int anIndex=-1;
+	if (found != NULL){
+	  anIndex = found - haystack;
 	}
-	return typesAndNamesArray;
+	return anIndex;
 }
-
-
 
 
 
 /****** Recursive file search ******/
 
-static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL recursive,BOOL simpleHeader,BOOL skipAlreadyFound){
+static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL recursive,BOOL simpleHeader,BOOL skipAlreadyFound,BOOL skipApplications){
 	
 	DIR * d;
 	d = opendir (dir_name);
@@ -1479,13 +1780,10 @@ static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,B
 		printf("  Scanning dir: %s...",dir_name); 
     	printf("\n\033[F\033[J");
     
-		NSAutoreleasePool *ppp=[[NSAutoreleasePool alloc] init];
-		
-		NSString *dname=[NSString stringWithCString:dir_name encoding:NSUTF8StringEncoding];
-		while  (entry && ([dname rangeOfString:@"//var"].location==0 || [dname rangeOfString:@"//private/var"].location==0 || [dname rangeOfString:@"//dev"].location==0 || [dname rangeOfString:@"//bin"].location==0 || [dname rangeOfString:@"/var"].location==0 || [dname rangeOfString:@"/private/var"].location==0 || [dname rangeOfString:@"/dev"].location==0 || [dname rangeOfString:@"/bin"].location==0 )){
+		while  (entry && (entry->d_type & DT_DIR) && ( locationOfString(dir_name,[outputDir UTF8String])==0 ||  ((locationOfString(dir_name,"/private/var")==0  || locationOfString(dir_name,"/var")==0 || locationOfString(dir_name,"//var")==0 || locationOfString(dir_name,"//private/var")==0) && (skipApplications || (!skipApplications && !strstr(dir_name,"Application")))) || locationOfString(dir_name,"//dev")==0 || locationOfString(dir_name,"//bin")==0 ||  locationOfString(dir_name,"/dev")==0 || locationOfString(dir_name,"/bin")==0 )) {
 			entry = readdir (d);
 		}
-		[ppp drain];
+
 		
 		if (! entry) {
 			break;
@@ -1511,13 +1809,13 @@ static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,B
 					skipString=[skipString stringByReplacingOccurrencesOfString:@".app" withString:@""];
 
 					if (![skipString isEqual:[imageToPass lastPathComponent]]){
-						parseImage((char *)[imageToPass UTF8String ],writeToDisk,outputDir,getSymbols,recursive,YES,simpleHeader,skipAlreadyFound);
+						parseImage((char *)[imageToPass UTF8String ],writeToDisk,outputDir,getSymbols,recursive,YES,simpleHeader,skipAlreadyFound,skipApplications);
 					}
 			
 				}
 			
 				else{
-					parseImage((char *)[imageToPass UTF8String ],writeToDisk,outputDir,getSymbols,recursive,YES,simpleHeader,skipAlreadyFound);	
+					parseImage((char *)[imageToPass UTF8String ],writeToDisk,outputDir,getSymbols,recursive,YES,simpleHeader,skipAlreadyFound,skipApplications);	
 				}
 			}
 			
@@ -1538,7 +1836,7 @@ static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,B
 					exit (EXIT_FAILURE);
 				}
 
-				list_dir (path,writeToDisk,outputDir,getSymbols,recursive,simpleHeader,skipAlreadyFound);
+				list_dir (path,writeToDisk,outputDir,getSymbols,recursive,simpleHeader,skipAlreadyFound,skipApplications);
 			}
 		}
 	}
@@ -1551,22 +1849,34 @@ static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,B
 
 /****** The actual job ******/
 
-extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL isRecursive,BOOL buildOriginalDirs,BOOL simpleHeader, BOOL skipAlreadyFound){
+extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL isRecursive,BOOL buildOriginalDirs,BOOL simpleHeader, BOOL skipAlreadyFound,BOOL skipApplications){
 
 	if (!image){
 		return 3;
 	}
+	// applications are skipped by default in a recursive, you can use -a to force-dump them recursively
+	if (skipApplications){
+		if (isRecursive && strstr(image,"/var/stash/Applications/")){ //skip Applications dir
+			return 4;
+		}
+
+		if (isRecursive && strstr(image,"/var/mobile/Applications/")){ //skip Applications dir
+			return 4;
+		}
+		if (isRecursive && strstr(image,"/var/mobile/Containers/Bundle/Application/")){ //skip Applications dir
+			return 4;
+		}
+	}
+	
+	// The following paths are skipped for known issues that arise when their symbols are added to the flat namespace
+	
 	if (strstr(image,"/Developer")){ //skip Developer dir
 		return 4;	
 	}
-	if (strstr(image,"/var/stash/Applications/")){ //skip Applications dir
-		return 4;
+	if (strstr(image,"/Library/Switches")){ //skip FlipSwitches dir
+		return 4;	
 	}
-	if (strstr(image,"/var/mobile/Applications/")){ //skip Applications dir
-		return 4;
-	}
-	
-	
+
 	if (strstr((char *)image,"SBSettings")!=0){ //skip SBSettings
 		return 4;
 	}
@@ -1585,6 +1895,10 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 	if (isRecursive && strstr(image,"QuickSpeak")){ //blacklisted for known issues on dlopen
 		return 4;
 	}
+	if (isRecursive && strstr(image,"HearingAidUIServer")){ //blacklisted for known issues on dlopen
+		return 4;
+	}
+	
 	if (isRecursive && strstr(image,"Mail.siriUIBundle")){ //blacklisted for known issues on dlopen
 		return 4;
 	}
@@ -1638,6 +1952,7 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 	
 	NSAutoreleasePool *xd=[[NSAutoreleasePool alloc] init];
 	if ([[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/dev"].location==0 || [[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/bin"].location==0 || [[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/var"].location==0){
+		[xd drain];
 		return 4;
 	}
 	[xd drain];
@@ -1666,6 +1981,17 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 	}
 	[xdd drain];
 
+
+	// check if image is executable
+	dlopen_preflight(image);
+	BOOL isExec=NO;
+	if (dlerror()){
+		if (fileExistsOnDisk(image)){
+			 isExec=isMachOExecutable(image);
+		}
+	}
+	
+	
 	void * ref=nil;
 	BOOL opened=dlopen_preflight(image);
 	const char *dlopenError=dlerror();
@@ -1676,61 +2002,75 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 	}
 	else{
 
+		if (!isExec || shouldDLopen32BitExecutables){
+			
+			if (!dlopenError || (dlopenError && !strstr(dlopenError,"no matching architecture in universal wrapper") && !strstr(dlopenError,"out of address space") && !strstr(dlopenError,"mach-o, but wrong architecture"))){
+				NSAutoreleasePool *pool=[[NSAutoreleasePool alloc] init];
+				NSString *imageString=[[NSString alloc] initWithCString:image encoding:NSUTF8StringEncoding];
+				NSString *lastComponent=[imageString lastPathComponent];
 
-		if (!dlopenError || (dlopenError && !strstr(dlopenError,"out of address space"))){
-			NSAutoreleasePool *pool=[[NSAutoreleasePool alloc] init];
-			NSString *imageString=[[NSString alloc] initWithCString:image encoding:NSUTF8StringEncoding];
-			NSString *lastComponent=[imageString lastPathComponent];
- 
-		
-		
-			if ([lastComponent rangeOfString:@".framework"].location==NSNotFound && [lastComponent rangeOfString:@".bundle"].location==NSNotFound && [lastComponent rangeOfString:@".app"].location==NSNotFound){
-				if (!isRecursive){
-					printf("\nNot a suitable image: %s\n",image);
+				if ([lastComponent rangeOfString:@".framework"].location==NSNotFound && [lastComponent rangeOfString:@".bundle"].location==NSNotFound && [lastComponent rangeOfString:@".app"].location==NSNotFound){
+					if (!isRecursive){	
+						dlopen_preflight(image);
+						printf("\nNot a suitable image: %s\n(%s)\n",image,dlerror());
+					}
+					return 3;		
 				}
-				return 3;
-			}	
-			NSBundle *loadedBundle=[NSBundle bundleWithPath:imageString];
-			[imageString release];
-			[pool drain];
-			char *exec=(char *)[[loadedBundle executablePath] UTF8String];
-			image=(char *)exec;
-			if (image){
-				opened=dlopen_preflight(image);
+				NSBundle *loadedBundle=[NSBundle bundleWithPath:imageString];
+				[imageString release];
+				[pool drain];
+				char *exec=(char *)[[loadedBundle executablePath] UTF8String];
+				image=(char *)exec;
+				if (image){
+
+					if (!dlopen_preflight(image)){
+						// cleanup dlerror:
+						dlerror();
+						isExec=isMachOExecutable(image);
+					}
+					//opened=dlopen_preflight(image);
+					opened=dlopen_preflight([[loadedBundle executablePath] UTF8String]);
+					dlopenError=dlerror();
+				}
+				else{
+					opened=NO;
+				}
+				if (opened && (!isExec || shouldDLopen32BitExecutables)){
+					ref=dlopen(image,  RTLD_LAZY);
+				}
 			}
-			else{
-				opened=NO;
-			}
-			if (opened){
-				ref=dlopen(image,  RTLD_LAZY);
-			}
+		
 		}
 	}
 
-	if (dlopenError && strstr(dlopenError,"out of address space")){
-
-		NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %s",image];
-		if (writeToDisk){
-			tryWithLib=[tryWithLib stringByAppendingString:[NSString stringWithFormat:@" -o %@",outputDir]];
+	if (image!=nil && ![allImagesProcessed containsObject:[NSString stringWithCString:image encoding:2]] && ((dlopenError && (strstr(dlopenError,"no matching architecture in universal wrapper") || strstr(dlopenError,"out of address space") || strstr(dlopenError,"mach-o, but wrong architecture"))) || (isExec && !shouldDLopen32BitExecutables))){
+		@autoreleasepool{
+			NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %s",image];
+			if (writeToDisk){
+				tryWithLib=[tryWithLib stringByAppendingString:[NSString stringWithFormat:@" -o %@",outputDir]];
+			}
+			if (!buildOriginalDirs){
+				tryWithLib=[tryWithLib stringByAppendingString:@" -b"];
+			}
+			if (!getSymbols){
+				tryWithLib=[tryWithLib stringByAppendingString:@" -g"];
+			}
+			if (simpleHeader){
+				tryWithLib=[tryWithLib stringByAppendingString:@" -u"];
+			}
+			if (addHeadersFolder){
+				tryWithLib=[tryWithLib stringByAppendingString:@" -h"];
+			}
+			if (inDebug){
+				tryWithLib=[tryWithLib stringByAppendingString:@" -D"];
+			}
+			[allImagesProcessed addObject:[NSString stringWithCString:image encoding:2]];
+			system([tryWithLib UTF8String]);
 		}
-		if (!buildOriginalDirs){
-			tryWithLib=[tryWithLib stringByAppendingString:@" -b"];
-		}
-		if (!getSymbols){
-			tryWithLib=[tryWithLib stringByAppendingString:@" -g"];
-		}
-		if (simpleHeader){
-			tryWithLib=[tryWithLib stringByAppendingString:@" -u"];
-		}
-		if (addHeadersFolder){
-			tryWithLib=[tryWithLib stringByAppendingString:@" -h"];
-		}
-		system([tryWithLib UTF8String]);
 		if (!isRecursive){
 			return 1;
 		}
 	}
-	
 
 	if (!opened || ref==nil || image==NULL){
 		if (!isRecursive){
@@ -1738,19 +2078,11 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 		}
 		return 3;
 	}
-	/*system("DYLD_INSERT_LIBRARIES=/dumper.dylib /System/Library/CoreServices/SpringBoard.app/SpringBoard >/dev/null 2>&1 </dev/null &");
-	dyld_all_image_infos = _dyld_get_all_image_infos();
-    dyld_all_image_infos = _dyld_get_all_image_infos();
-		for(int i=0; i<dyld_all_image_infos->infoArrayCount; i++) {
-			if (dyld_all_image_infos->infoArray[i].imageLoadAddress!=NULL){
-				char *currentImage=(char *)dyld_all_image_infos->infoArray[i].imageFilePath;
-				if (strlen(currentImage)>0 && strstr(currentImage,image)){
-					image=currentImage;
-					break;
-				}
-			}
-		}
-    */
+ 	
+ 	if (image!=nil && [allImagesProcessed containsObject:[NSString stringWithCString:image encoding:2]]){
+		return 5;
+	}
+	
 	CDLog(@"Dlopen complete, proceeding with class info for %s",image);
 	// PROCEED
 	BOOL isFramework=NO;
@@ -1836,7 +2168,7 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 		if (isRecursive && (!strcmp(names[i],"UIScreen") || !strcmp(names[i],"UICollectionViewData"))){
 			continue;
 		}
-		if (!strcmp(names[i],"WebPreferences") || !strcmp(names[i],"WebFrameView") || !strcmp(names[i],"VMServiceClient") || !strcmp(names[i],"VKClassicGlobeCanvas") || !strcmp(names[i],"VKLabelModel") || !strcmp(names[i],"UICTFont") || !strcmp(names[i],"UIFont") || !strcmp(names[i],"NSFont") || !strcmp(names[i],"PLImageView") || !strcmp(names[i],"PLPolaroidImageView") || !strcmp(names[i],"MFSMTPConnection") || !strcmp(names[i],"MFConnection") || !strcmp(names[i],"AXSpringBoardSettingsLoader") || !strcmp(names[i],"AXUIActiveWindow")){
+		if (!strcmp(names[i],"SBAXItemChooserTableViewCell") ||  !strcmp(names[i],"WebPreferences") || !strcmp(names[i],"WebFrameView") || !strcmp(names[i],"VMServiceClient") || !strcmp(names[i],"VKClassicGlobeCanvas") || !strcmp(names[i],"VKLabelModel") || !strcmp(names[i],"UICTFont") || !strcmp(names[i],"UIFont") || !strcmp(names[i],"NSFont") || !strcmp(names[i],"PLImageView") || !strcmp(names[i],"PLPolaroidImageView") || !strcmp(names[i],"MFSMTPConnection") || !strcmp(names[i],"MFConnection") || !strcmp(names[i],"AXSpringBoardSettingsLoader") || !strcmp(names[i],"AXUIActiveWindow")){
 			continue;
 		}
 		
@@ -2526,6 +2858,7 @@ int main(int argc, char **argv, char **envp) {
 		BOOL getSymbols=YES;
 		BOOL skipAlreadyFound=NO;
 		BOOL isSharedCacheRecursive=NO;
+		BOOL skipApplications=YES;
 		
 		NSString *outputDir=nil;
 		NSString *sourceDir=nil;
@@ -2593,6 +2926,17 @@ int main(int argc, char **argv, char **envp) {
 				[argumentsToUse removeObject:sourceDir];
 				
 			}
+			
+			if ([arg isEqual:@"-a"]){
+				skipApplications=NO;
+				[argumentsToUse removeObject:arg];
+			}
+			
+			if ([arg isEqual:@"-e"]){
+				shouldDLopen32BitExecutables=YES;
+				[argumentsToUse removeObject:arg];
+			}
+			
 			
 			if ([arg isEqual:@"-s"]){
 				skipAlreadyFound=YES;
@@ -2714,7 +3058,7 @@ int main(int argc, char **argv, char **envp) {
 				[imageToNSString replaceOccurrencesOfString:@"///" withString:@"/" options:nil range:NSMakeRange(0, [imageToNSString length])];
 				[imageToNSString replaceOccurrencesOfString:@"//" withString:@"/" options:nil range:NSMakeRange(0, [imageToNSString length])];
 				CDLog(@"Current Image %@",imageToNSString);
-				parseImage((char *)[imageToNSString UTF8String],writeToDisk,outputDir,getSymbols,YES,YES,simpleHeader,skipAlreadyFound);
+				parseImage((char *)[imageToNSString UTF8String],writeToDisk,outputDir,getSymbols,YES,YES,simpleHeader,skipAlreadyFound,skipApplications);
 				[imageToNSString release];
 				
 			}
@@ -2739,7 +3083,7 @@ int main(int argc, char **argv, char **envp) {
 			sourceDir=[fileman currentDirectoryPath];
 			[fileman release];
 			const char* dir_name=[sourceDir UTF8String];
-			list_dir(dir_name,writeToDisk,outputDir,getSymbols,recursive,simpleHeader,skipAlreadyFound);
+			list_dir(dir_name,writeToDisk,outputDir,getSymbols,recursive,simpleHeader,skipAlreadyFound,skipApplications);
 
 
 		}
@@ -2772,7 +3116,7 @@ int main(int argc, char **argv, char **envp) {
 					
 					}
 				}
-				RESULT = parseImage(image,writeToDisk,outputDir,getSymbols,NO,buildOriginalDirs,simpleHeader,NO);
+				RESULT = parseImage(image,writeToDisk,outputDir,getSymbols,NO,buildOriginalDirs,simpleHeader,NO,skipApplications);
 				[fileman release];
 			}
 		}
