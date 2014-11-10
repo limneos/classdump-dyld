@@ -60,10 +60,20 @@ struct cache_header {
         uint64_t dyldaddr;
 };
 
+static BOOL arch64(){
+	
+	#ifdef __LP64__
+	return YES;
+	#endif
+	return NO;
+
+}
+
  
 BOOL is64BitMachO(const char *image){
 	
-	FILE *machoFile = fopen (image, "rb");
+	return arch64();
+	/*FILE *machoFile = fopen (image, "rb");
 	if (machoFile == 0){
 		fclose(machoFile);
 	 	return NO;
@@ -76,7 +86,7 @@ BOOL is64BitMachO(const char *image){
   	}
   	fclose(machoFile);
 	return machHeader.magic==MH_MAGIC_64;
-
+	*/
 }
 
 /****** Helper Functions ******/
