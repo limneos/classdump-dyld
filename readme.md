@@ -38,7 +38,7 @@ It also works on a Mac for dyld_shared_cache and some libraries
 		Structure:
 			-g   Do not generate symbol names 
 			-h   Add a \"Headers\" directory to place headers in
-			-b   Do not build original directory structure in output dir
+			-b   Build original directory structure in output dir
 			-u   Do not include framework when importing headers ("Header.h" instead of <frameworkName/Header.h>)
 
 		Output:
