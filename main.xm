@@ -173,7 +173,7 @@ void printHelp(){
 
 	printf("    Structure:\n");
 	printf("        -g   Do not generate symbol names\n"); 
-	printf("        -b   Do not build original directory structure in output dir\n");
+	printf("        -b   Build original directory structure in output dir\n");
 	printf("        -h   Add a \"Headers\" directory to place headers in\n");
 	printf("        -u   Do not include framework when importing headers (\"Header.h\" instead of <frameworkName/Header.h>)\n\n");
 
@@ -1951,7 +1951,7 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 	
 	
 	NSAutoreleasePool *xd=[[NSAutoreleasePool alloc] init];
-	if ([[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/dev"].location==0 || [[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/bin"].location==0 || [[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/var"].location==0){
+	if (isRecursive && ([[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/dev"].location==0 || [[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/bin"].location==0 || (skipApplications && [[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/var"].location==0))){
 		[xd drain];
 		return 4;
 	}
@@ -2049,7 +2049,7 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 			if (writeToDisk){
 				tryWithLib=[tryWithLib stringByAppendingString:[NSString stringWithFormat:@" -o %@",outputDir]];
 			}
-			if (!buildOriginalDirs){
+			if (buildOriginalDirs){
 				tryWithLib=[tryWithLib stringByAppendingString:@" -b"];
 			}
 			if (!getSymbols){
@@ -2852,7 +2852,7 @@ int main(int argc, char **argv, char **envp) {
 
 		char * image=nil;
 		BOOL writeToDisk=NO;
-		BOOL buildOriginalDirs=YES;
+		BOOL buildOriginalDirs=NO;
 		BOOL recursive=NO;
 		BOOL simpleHeader=NO;
 		BOOL getSymbols=YES;
@@ -2945,7 +2945,7 @@ int main(int argc, char **argv, char **envp) {
 			}
 			
 			if ([arg isEqual:@"-b"]){
-				buildOriginalDirs=NO;
+				buildOriginalDirs=YES;
 				[argumentsToUse removeObject:arg];
 				
 			}
