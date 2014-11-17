@@ -132,7 +132,7 @@ void printHelp(){
 
 	printf("    Structure:\n");
 	printf("        -g   Do not generate symbol names\n"); 
-	printf("        -b   Do not build original directory structure in output dir\n");
+	printf("        -b   Build original directory structure in output dir\n");
 	printf("        -h   Add a \"Headers\" directory to place headers in\n");
 	printf("        -u   Do not include framework when importing headers (\"Header.h\" instead of <frameworkName/Header.h>)\n\n");
 
@@ -1645,7 +1645,7 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 		}
 		
 		// Some more blacklisted classes 
-		if (!strcmp(names[i],"FBGroupPendingStream") || !strcmp(names[i],"FBConsoleGetTagStatuses_result") || !strcmp(names[i],"CLLocationProviderAdapter") || strcmp(names[i],"AXBackBoardGlue")==0 || strcmp(names[i],"TMBackgroundTaskAgent")==0){
+		if (!strcmp(names[i],"WAServerProperties") || !strcmp(names[i],"FBGroupPendingStream") || !strcmp(names[i],"FBConsoleGetTagStatuses_result") || !strcmp(names[i],"CLLocationProviderAdapter") || strcmp(names[i],"AXBackBoardGlue")==0 || strcmp(names[i],"TMBackgroundTaskAgent")==0){
 			continue;
 		}
 
@@ -2334,7 +2334,7 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 
 		char * image=nil;
 		BOOL writeToDisk=NO;
-		BOOL buildOriginalDirs=YES;
+		BOOL buildOriginalDirs=NO;
 		BOOL skipAlreadyFound=NO;
 		BOOL simpleHeader=NO;
 		BOOL getSymbols=YES;
@@ -2387,7 +2387,7 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 			 
 			
 			if ([arg isEqual:@"-b"]){
-				buildOriginalDirs=NO;
+				buildOriginalDirs=YES;
 				[argumentsToUse removeObject:arg];
 				
 			}
@@ -2432,7 +2432,6 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 			printHelp();
 			exit(0);
 		}
-		
 				
 		// Begin
 	
