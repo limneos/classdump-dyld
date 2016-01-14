@@ -8,6 +8,8 @@ A class dumping command line tool that generates header files from app binaries,
 
 Eliminates the need to extract files from the dyld_shared_cache in order to class-dump them or get symbols.
 
+Mass-dumps whole dyld_shared_cache or directories containing any mach-o file recursively.
+
 You can instantly classdump any compatible Mach-o file, either if it is physically stored on disk or it resides in the dyld_shared_cache.
 
 Features and options:
@@ -37,7 +39,7 @@ It also works on a Mac for dyld_shared_cache and some libraries
 		Structure:
 			-g   Do not generate symbol names 
 			-h   Add a \"Headers\" directory to place headers in
-			-b   Do not build original directory structure in output dir
+			-b   Build original directory structure in output dir
 			-u   Do not include framework when importing headers ("Header.h" instead of <frameworkName/Header.h>)
 
 		Output:
@@ -48,8 +50,10 @@ It also works on a Mac for dyld_shared_cache and some libraries
 			-r   <sourcepath> Recursively dump any compatible Mach-O file found in the given path (requires -o) 
 			-s   In a recursive dump, skip header files already found in the same output directory 
 		
-		Debug: 
-			-D   Print debug info for troubleshooting
+		Miscellaneous: 
+			-D   Enable debug printing for troubleshooting errors
+			-e   dpopen 32Bit executables instead of injecting them (iOS 5+, use if defaults fail.This will skip any 64bit executable) 
+			-a   In a recursive dump, include 'Applications' directories (skipped by default)
 		Examples:
     		Example 1: classdump-dyld -o outdir /System/Library/Frameworks/UIKit.framework
     		Example 2: classdump-dyld -o outdir /usr/libexec/backboardd
@@ -77,12 +81,12 @@ twitter: @limneos
 Licence
 -----------
 
-classdump-dyld is Copyright (c) 2013 Elias Limneos, licensed under GPLv3.
+classdump-dyld is Copyright (c) 2013-2014 Elias Limneos, licensed under GPLv3.
 
 
 Environment
 -----------
-classdump-dyld works in a command line shell on any iOS 5+ device and Mac OS X. Tested from iOS 5.x to iOS 7.x and Mac OSX 10.8+.
+classdump-dyld works in a command line shell on any iOS 5+ device and Mac OS X. Tested from iOS 5.x to iOS 8.x and Mac OSX 10.8+.
 
 
 
