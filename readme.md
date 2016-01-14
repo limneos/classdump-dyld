@@ -1,6 +1,7 @@
 classdump-dyld
 ==============
 
+Added Single Class dumping
 Added 64bit executables dumping 
 
 A class dumping command line tool that generates header files from app binaries, libraries, frameworks, bundles or the whole dyld_shared_cache.
