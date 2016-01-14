@@ -44,6 +44,10 @@ It also works on a Mac for dyld_shared_cache and some libraries
 
 		Output:
 			-o   <outputdir> Save generated headers to defined path
+
+		Single Class:
+			-j   <className> Dump only the specified class name. (Does not work with -c or -r )
+                        This might also dump additional imported or required headers.
 		
 		Mass dumping: (requires -o)
 			-c   Dump all images found in dyld_shared_cache 
