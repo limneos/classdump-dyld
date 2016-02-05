@@ -19,6 +19,18 @@ This is extremely useful in cases when classdump-dyld cannot inject and dump app
 
 (This makes weak_classdump project obsolete)
 
+A typical usage in cycript would be:
+
+	#cycript -p SpringBoard
+	
+	dlopen("/usr/lib/libclassdumpdyld.dylib",RTLD_NOW);
+	dumpBundle=@encode(id(id))(dlsym(RTLD_DEFAULT,"dumpBundle"));
+	
+	dumpBundle([NSBundle mainBundle]);
+	
+	dumpBundle([NSBundle bundleWithIdentifier:@"com.apple.UIKit"]);
+	
+
 ----------------------------- 
 
 Added 64bit executables dumping and single class dumping
