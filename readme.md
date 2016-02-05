@@ -4,7 +4,7 @@ classdump-dyld
 Major update
 ------------
 
-Added cycript integration.
+As of February 5 2016, I have added cycript integration.
 
 You can now dlopen /usr/lib/libclassdumpdyld.dylib in cycript after injecting any application, 
 
