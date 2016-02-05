@@ -15,6 +15,7 @@ and dlsym the dumpClass and dumpBundle functions.
 	extern "C" NSString * dumpBundle(NSBundle *aBundle);
 	
 
+This is extremely useful in cases when classdump-dyld cannot inject and dump applications.
 ----------------------------- 
 
 Added 64bit executables dumping and single class dumping
