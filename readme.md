@@ -1,6 +1,16 @@
 classdump-dyld
 ==============
 
+Major update
+------------
+
+Added cycript integration.
+
+You can now dlopen /usr/lib/libclassdumpdyld.dylib in cycript after injecting any application, 
+
+and dlsym the dumpClass and dumpBundle functions.
+
+----------------------------- 
 
 Added 64bit executables dumping and single class dumping
 
