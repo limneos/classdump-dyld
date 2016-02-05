@@ -269,14 +269,21 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 				NSString *exec=[NSString stringWithFormat:@"/usr/bin/ldid -e %s > /tmp/entitlements/%@",image,[[NSString stringWithCString:image encoding:NSUTF8StringEncoding] lastPathComponent]];
 				system([exec UTF8String]);
 			}*/
-			NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %s",image];
+
+			#if defined (__x86_64__) || defined (__i386__)
+				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/local/lib/libclassdumpdyld.dylib %s",image];
+			#else
+				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %s",image];
+			#endif			
+			
+
 			if (writeToDisk){
 				tryWithLib=[tryWithLib stringByAppendingString:[NSString stringWithFormat:@" -o %@",outputDir]];
 			}
 			if (buildOriginalDirs){
 				tryWithLib=[tryWithLib stringByAppendingString:@" -b"];
 			}
-			if (!getSymbols){
+			if (getSymbols){
 				tryWithLib=[tryWithLib stringByAppendingString:@" -g"];
 			}
 			if (simpleHeader){
@@ -1083,7 +1090,7 @@ int main(int argc, char **argv, char **envp) {
 		BOOL buildOriginalDirs=NO;
 		BOOL recursive=NO;
 		BOOL simpleHeader=NO;
-		BOOL getSymbols=YES;
+		BOOL getSymbols=NO;
 		BOOL skipAlreadyFound=NO;
 		BOOL isSharedCacheRecursive=NO;
 		BOOL skipApplications=YES;
@@ -1204,7 +1211,7 @@ int main(int argc, char **argv, char **envp) {
 			}
 			
 			if ([arg isEqual:@"-g"]){
-				getSymbols=NO;
+				getSymbols=YES;
 				[argumentsToUse removeObject:arg];
 				
 			}

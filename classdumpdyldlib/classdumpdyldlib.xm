@@ -9,7 +9,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-
+static BOOL inCycript=NO;
 static BOOL inDebug=NO;
 #define CDLog(...) if (inDebug)NSLog(@"libclassdump-dyld : %@", [NSString stringWithFormat:__VA_ARGS__] )
 
@@ -91,6 +91,9 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 	
 	[processedImages addObject:[NSString stringWithCString:image encoding:NSUTF8StringEncoding]];
 	CDLog(@"Beginning class loop (%d classed) for %s",count,image);
+	if (inCycript){
+		NSLog(@"Beginning class loop (%d classed) for %s",count,image);
+	}
 	NSMutableString *classesToImport=[[NSMutableString alloc] init];
 	
 	int actuallyProcesssedCount=0;
@@ -146,6 +149,9 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 		actuallyProcesssedCount++;
 		
 		CDLog(@"Processing Class %s (%d/%d)\n",names[i],i,count);
+		if (inCycript){
+			NSLog(@"Processing Class %s (%d/%d)\n",names[i],i,count);
+		}
 		
 		NSString *classNameNS=[NSString stringWithCString:names[i] encoding:NSUTF8StringEncoding];
 		while ([classNameNS rangeOfString:@"_"].location==0){
@@ -485,7 +491,9 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 
 		}
 		else{
-			printf("%s\n\n",[dumpString UTF8String]);
+			if (!inCycript){
+				printf("%s\n\n",[dumpString UTF8String]);
+			}
 			
 		}
 		if (writeToDisk){
@@ -494,7 +502,9 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 		}
 
 		objc_destructInstance(currentClass);
-
+		if (inCycript  && onlyOneClass){
+			return [dumpString autorelease];
+		}
 		[dumpString release];
 		dumpString=[[NSMutableString alloc] init];
 		[pool drain];
@@ -816,11 +826,124 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 	
 }
 
+@interface classdumpdyld : NSObject
+@end
+
+@implementation classdumpdyld
+static NSString *parsedResult=nil;
++(id)printResult{
+	return parsedResult;
+}
+@end
 
 
-/****** main ******/
+extern "C" NSString * dumpClass(Class *aClass){  //for use from within cycript (http://cycript.org)
+	
+	NSString *className=[(id)aClass description];
+	if (objc_getClass([className  UTF8String])==NULL){
+		return [NSString stringWithFormat:@"Can't find class '%@'",className];
+	}
 
-%ctor{
+	generateForbiddenClassesArray(NO);
+	NSString *imagePath=[[NSBundle bundleForClass:objc_getClass([className UTF8String])] executablePath];
+	onlyOneClass=[className retain];
+	NSString *classDumpString=parseImage((char *)[imagePath UTF8String],NO,NULL,YES,NO,NO,NO,NO);
+	NSString *savePath=[[NSFileManager defaultManager] isWritableFileAtPath:@"/tmp"] ? @"/tmp" : [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+	NSString *fileToWrite=[NSString stringWithFormat:@"%@/%@.h",savePath,className];
+	
+	NSError *error=NULL;
+	[classDumpString writeToFile:fileToWrite atomically:YES encoding:NSUTF8StringEncoding error:&error];
+	if (error){ 
+		parsedResult=[classDumpString retain];
+		return @"Could not write to disk, type "BOLDWHITE"[classdumpdyld printResult]"RESET" to print the dump in here.";		
+	}
+	else{
+		return [NSString stringWithFormat:@"Wrote file %@",fileToWrite];
+	}
+	
+}
+
+
+extern "C" NSString * dumpBundle(NSBundle *aBundle){  //for use from within cycript (http://cycript.org)
+	
+	if (![aBundle isKindOfClass:objc_getClass("NSBundle")]){
+		return [NSString stringWithFormat:@"Not a bundle '%@'",aBundle];
+	}
+	if (![aBundle isLoaded]){
+		BOOL loaded=[aBundle load];
+		if (!loaded){
+			return [NSString stringWithFormat:@"Can't load bundle '%@'",[aBundle bundleIdentifier]];
+		}
+	}
+
+	generateForbiddenClassesArray(NO);
+	NSString *imagePath=[aBundle executablePath];
+	NSString *savePath=[[NSFileManager defaultManager] isWritableFileAtPath:@"/tmp"] ? @"/tmp" : [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+	NSString *outputDir=[NSString stringWithFormat:@"%@/%@",savePath,[[[aBundle bundlePath] lastPathComponent] stringByDeletingPathExtension] ?: [aBundle principalClass]];
+	NSError *error=NULL;
+	BOOL isDir=NO;
+	[[NSFileManager defaultManager] fileExistsAtPath:outputDir isDirectory:&isDir];
+	if (!isDir){
+		[[NSFileManager defaultManager] createDirectoryAtPath:outputDir withIntermediateDirectories:NO attributes:nil error:&error];
+		if (error){
+			return [error description];
+		}
+	}
+
+	NSString *result=parseImage((char *)[imagePath UTF8String],YES,outputDir,NO,NO,NO,NO,NO);
+
+	NSArray *things=[[result componentsSeparatedByString:@"@@@@@"] retain];
+	[result release];
+
+	int total=[things count];
+
+	if (total>2){ 
+
+		NSLog(@"libclassdumpdyld: Writing headers to disk...");
+
+	}
+
+	for (unsigned i=0; i<[things count]; i++){
+
+		@autoreleasepool{
+	
+			NSString *thing=[things objectAtIndex:i]; 
+
+			if (thing.length>0){
+				NSError *createError=nil;
+		
+				NSString *filePath=[thing substringToIndex:[thing rangeOfString:@"&&&&&"].location];
+				thing=[thing substringFromIndex:[thing rangeOfString:@"&&&&&"].location+5];
+				NSString *dirtosave=[filePath stringByDeletingLastPathComponent];
+				 
+				
+				[[NSFileManager defaultManager] createDirectoryAtPath:dirtosave withIntermediateDirectories:YES attributes:nil error:&createError];
+				FILE * pFile;
+				pFile = fopen ([filePath UTF8String],"w");
+			
+				if (pFile!=NULL){
+					fputs ([thing UTF8String],pFile);
+					fclose (pFile);
+				}
+				else{
+				
+				}
+			}
+		
+		}
+	
+	}
+
+	[things release];
+
+
+	return [NSString stringWithFormat:@"Wrote all headers to %@",outputDir];
+	
+	
+}
+
+
+static __attribute__((constructor)) void _logosLocalCtor_976e898d(){
 
 	@autoreleasepool {
 
@@ -829,229 +952,250 @@ static NSString *  parseImage(char *image,BOOL writeToDisk,NSString *outputDir,B
 		BOOL buildOriginalDirs=NO;
 		BOOL skipAlreadyFound=NO;
 		BOOL simpleHeader=NO;
-		BOOL getSymbols=YES;
+		BOOL getSymbols=NO;
 		BOOL isRecursive=NO;
 
 		
 		NSString *outputDir=nil;
+
+		
+		dyld_all_image_infos = _dyld_get_all_image_infos();
+	    dyld_all_image_infos = _dyld_get_all_image_infos();
+		for(int i=0; i<dyld_all_image_infos->infoArrayCount; i++) {
+			if (dyld_all_image_infos->infoArray[i].imageLoadAddress!=NULL){
+				char *currentImage=(char *)dyld_all_image_infos->infoArray[i].imageFilePath;
+				if (strlen(currentImage)>0 && strstr(currentImage,"/usr/lib/libcycript.dylib")){
+					inCycript=YES;
+					break;
+				}
+			}
+		}
  
 		
-		// Check and apply arguments
+		
 		
 		NSString *currentDir=[[[NSProcessInfo processInfo] environment] objectForKey:@"PWD"];
 	
-
-		NSArray *arguments=[[NSProcessInfo processInfo] arguments];
+		if (!inCycript){
 		
-		NSMutableArray *argumentsToUse=[arguments mutableCopy];
-		//[argumentsToUse removeObjectAtIndex:0];
-		int argCount=[arguments count];
-
-		if (argCount<1){
-			printHelp();
-			exit(0);
-		}
+			NSArray *arguments=[[NSProcessInfo processInfo] arguments];
 		
-		for (NSString *arg in arguments){
+			NSMutableArray *argumentsToUse=[arguments mutableCopy];
 			
-			if ([arg isEqual:@"-o"]){
+			int argCount=[arguments count];
 
-				int argIndex=[arguments indexOfObject:arg]; 
-
-				if (argIndex==argCount-1){
-					printHelp();
-					exit(0);
-				}
-
-				outputDir=[arguments objectAtIndex:argIndex+1];
-
-				if ([outputDir rangeOfString:@"-"].location==0){
-					printHelp();
-					exit(0);
-				}
-				writeToDisk=YES;
-				[argumentsToUse removeObject:arg];
-				[argumentsToUse removeObject:outputDir];
-
-				
+			if (argCount<1){
+				printHelp();
+				exit(0);
 			}
-			
-			 if ([arg isEqual:@"-j"]){
-
-				int argIndex=[arguments indexOfObject:arg]; 
-
-				if (argIndex==argCount-1){
-					printHelp();
-					exit(0);
-				}
-
-				onlyOneClass=[[arguments objectAtIndex:argIndex+1] retain];
-
-				if ([onlyOneClass rangeOfString:@"-"].location==0){
-					printHelp();
-					exit(0);
-				}
-				 
-				[argumentsToUse removeObject:arg];
-				[argumentsToUse removeObject:onlyOneClass];
-
-				
-			}
-			
-			
-			if ([arg isEqual:@"-b"]){
-				buildOriginalDirs=YES;
-				[argumentsToUse removeObject:arg];
-				
-			}
-			
-			if ([arg isEqual:@"-r"]){
-				isRecursive=YES;
-				[argumentsToUse removeObject:arg];
-				
-			}
-			
-			if ([arg isEqual:@"-g"]){
-				getSymbols=NO;
-				[argumentsToUse removeObject:arg];
-				
-			}
-			
-			if ([arg isEqual:@"-u"]){
-				simpleHeader=YES;
-				[argumentsToUse removeObject:arg];				
-			}
-			 
-			if ([arg isEqual:@"-h"]){
-				addHeadersFolder=YES;
-				[argumentsToUse removeObject:arg];				
-			}
-			if ([arg isEqual:@"-s"]){
-				skipAlreadyFound=YES;
-				[argumentsToUse removeObject:arg];				
-			}
-			if ([arg isEqual:@"-D"]){
-				inDebug=YES;
-				[argumentsToUse removeObject:arg];				
-			}
-
-
-		}
 		
-		if (addHeadersFolder && !outputDir){
-			printHelp();
-			exit(0);
-		}
-		
-
-		if ([argumentsToUse count]>0){
-			image=(char *)[[argumentsToUse objectAtIndex:0] UTF8String];			
-		}
-		else{
-			printHelp();
-			exit(0);
-		}
-				
-		// Begin
-		
-		generateForbiddenClassesArray(isRecursive);
-		
-		if (image){
-				
-			NSError *error=nil;
-			NSFileManager *fileman=[[NSFileManager alloc ] init];	
-			NSString *imageString=nil;	
-			if (outputDir){
-
-				[fileman createDirectoryAtPath:outputDir withIntermediateDirectories:YES attributes:nil error:&error];
-				if (error){
-					NSLog(@"Could not create directory %@. Check permissions.",outputDir);
-					exit(EXIT_FAILURE);
-				}
-				[fileman changeCurrentDirectoryPath:currentDir];
-
-				[fileman changeCurrentDirectoryPath:outputDir];
-
-				outputDir=[fileman currentDirectoryPath]!=nil ? [fileman currentDirectoryPath] : outputDir;
-				
-				if (![fileman currentDirectoryPath]){
-					printf("  Error: Injected application cannot write to %s, please change your output directory (you can use your user directory, e.g. /var/root/%s )",[outputDir UTF8String],[[outputDir lastPathComponent] UTF8String]);
-					exit(0); // exit injected application without error
-				}
-				imageString=[NSString stringWithCString:image encoding:NSUTF8StringEncoding];
+			for (NSString *arg in arguments){
 			
-				if ([imageString rangeOfString:@"/"].location!=0){ // not an absolute path
-						
-					[fileman changeCurrentDirectoryPath:currentDir];
-					NSString *append=[imageString lastPathComponent];
-					NSString *source=[imageString stringByDeletingLastPathComponent];
-					[fileman changeCurrentDirectoryPath:source];
-					imageString=[[fileman currentDirectoryPath] stringByAppendingString:[NSString stringWithFormat:@"/%@",append]];
-					image=(char *)[imageString UTF8String];
-				
-				}
-			}
+				if ([arg isEqual:@"-o"]){
 
-			NSString *result=parseImage(image,writeToDisk,outputDir,getSymbols,NO,buildOriginalDirs,simpleHeader,skipAlreadyFound);
-			
-			
+					int argIndex=[arguments indexOfObject:arg]; 
 
-			if (writeToDisk){
-				
-
-				NSArray *things=[[result componentsSeparatedByString:@"@@@@@"] retain];
-				[result release];
-
-				int total=[things count];
-				
-				if (total>2){ //1 is empty, 2 is structs
-
-					printf("  Writing "BOLDWHITE"%s"RESET" headers to disk...\n",image);
-
-				}
-				
-				for (unsigned i=0; i<[things count]; i++){
-				
-					@autoreleasepool{
-					
-						NSString *thing=[things objectAtIndex:i]; 
-
-						if (thing.length>0){
-							NSError *createError=nil;
-						
-							NSString *filePath=[thing substringToIndex:[thing rangeOfString:@"&&&&&"].location];
-							thing=[thing substringFromIndex:[thing rangeOfString:@"&&&&&"].location+5];
-							NSString *dirtosave=[filePath stringByDeletingLastPathComponent];
-
-							loadBar(i,total, 100, 50,[[filePath lastPathComponent] UTF8String]);   
-							[[NSFileManager defaultManager] createDirectoryAtPath:dirtosave withIntermediateDirectories:YES attributes:nil error:&createError];
-							FILE * pFile;
-							pFile = fopen ([filePath UTF8String],"w");
-							
-							if (pFile!=NULL){
-								fputs ([thing UTF8String],pFile);
-								fclose (pFile);
-							}
-							else{
-							//perror([filePath UTF8String]);
-							}
-						}
-						
+					if (argIndex==argCount-1){
+						printHelp();
+						exit(0);
 					}
-					
+
+					outputDir=[arguments objectAtIndex:argIndex+1];
+
+					if ([outputDir rangeOfString:@"-"].location==0){
+						printHelp();
+						exit(0);
+					}
+					writeToDisk=YES;
+					[argumentsToUse removeObject:arg];
+					[argumentsToUse removeObject:outputDir];
+
+				
 				}
 			
-				[things release];
+				 if ([arg isEqual:@"-j"]){
+
+					int argIndex=[arguments indexOfObject:arg]; 
+
+					if (argIndex==argCount-1){
+						printHelp();
+						exit(0);
+					}
+
+					onlyOneClass=[[arguments objectAtIndex:argIndex+1] retain];
+
+					if ([onlyOneClass rangeOfString:@"-"].location==0){
+						printHelp();
+						exit(0);
+					}
+				 
+					[argumentsToUse removeObject:arg];
+					[argumentsToUse removeObject:onlyOneClass];
+
+				
+				}
+			
+			
+				if ([arg isEqual:@"-b"]){
+					buildOriginalDirs=YES;
+					[argumentsToUse removeObject:arg];
+				
+				}
+			
+				if ([arg isEqual:@"-r"]){
+					isRecursive=YES;
+					[argumentsToUse removeObject:arg];
+				
+				}
+			
+				if ([arg isEqual:@"-g"]){
+					getSymbols=YES;
+					[argumentsToUse removeObject:arg];
+				
+				}
+			
+				if ([arg isEqual:@"-u"]){
+					simpleHeader=YES;
+					[argumentsToUse removeObject:arg];				
+				}
+			 
+				if ([arg isEqual:@"-h"]){
+					addHeadersFolder=YES;
+					[argumentsToUse removeObject:arg];				
+				}
+				if ([arg isEqual:@"-s"]){
+					skipAlreadyFound=YES;
+					[argumentsToUse removeObject:arg];				
+				}
+				if ([arg isEqual:@"-D"]){
+					inDebug=YES;
+					[argumentsToUse removeObject:arg];				
+				}
+
 
 			}
-			printf("  All done for "BOLDWHITE"%s"RESET"\n",image);
 		
-			[fileman release];
-		}
+			if (addHeadersFolder && !outputDir){
+				printHelp();
+				exit(0);
+			}
+		
 
+			if ([argumentsToUse count]>0){
+				image=(char *)[[argumentsToUse objectAtIndex:0] UTF8String];			
+			}
+			else{
+				printHelp();
+				exit(0);
+			}
+		
+		
+		
+		
+			
+		
+			generateForbiddenClassesArray(isRecursive);
+		
+			if (image){
+				
+				NSError *error=nil;
+				NSFileManager *fileman=[[NSFileManager alloc ] init];	
+				NSString *imageString=nil;	
+				if (outputDir){
+
+					[fileman createDirectoryAtPath:outputDir withIntermediateDirectories:YES attributes:nil error:&error];
+					if (error){
+						NSLog(@"Could not create directory %@. Check permissions.",outputDir);
+						exit(EXIT_FAILURE);
+					}
+					[fileman changeCurrentDirectoryPath:currentDir];
+
+					[fileman changeCurrentDirectoryPath:outputDir];
+
+					outputDir=[fileman currentDirectoryPath]!=nil ? [fileman currentDirectoryPath] : outputDir;
+				
+					if (![fileman currentDirectoryPath]){
+						printf("  Error: Injected application cannot write to %s, please change your output directory (you can use your user directory, e.g. /var/root/%s )",[outputDir UTF8String],[[outputDir lastPathComponent] UTF8String]);
+						exit(0); 
+					}
+					imageString=[NSString stringWithCString:image encoding:NSUTF8StringEncoding];
+			
+					if ([imageString rangeOfString:@"/"].location!=0){ 
+						
+						[fileman changeCurrentDirectoryPath:currentDir];
+						NSString *append=[imageString lastPathComponent];
+						NSString *source=[imageString stringByDeletingLastPathComponent];
+						[fileman changeCurrentDirectoryPath:source];
+						imageString=[[fileman currentDirectoryPath] stringByAppendingString:[NSString stringWithFormat:@"/%@",append]];
+						image=(char *)[imageString UTF8String];
+				
+					}
+				}
+
+				NSString *result=parseImage(image,writeToDisk,outputDir,getSymbols,NO,buildOriginalDirs,simpleHeader,skipAlreadyFound);
+			
+			
+
+				if (writeToDisk){
+				
+
+					NSArray *things=[[result componentsSeparatedByString:@"@@@@@"] retain];
+					[result release];
+
+					int total=[things count];
+				
+					if (total>2){ 
+
+						printf("  Writing "BOLDWHITE"%s"RESET" headers to disk...\n",image);
+
+					}
+				
+					for (unsigned i=0; i<[things count]; i++){
+				
+						@autoreleasepool{
+					
+							NSString *thing=[things objectAtIndex:i]; 
+
+							if (thing.length>0){
+								NSError *createError=nil;
+						
+								NSString *filePath=[thing substringToIndex:[thing rangeOfString:@"&&&&&"].location];
+								thing=[thing substringFromIndex:[thing rangeOfString:@"&&&&&"].location+5];
+								NSString *dirtosave=[filePath stringByDeletingLastPathComponent];
+
+								loadBar(i,total, 100, 50,[[filePath lastPathComponent] UTF8String]);   
+								[[NSFileManager defaultManager] createDirectoryAtPath:dirtosave withIntermediateDirectories:YES attributes:nil error:&createError];
+								FILE * pFile;
+								pFile = fopen ([filePath UTF8String],"w");
+							
+								if (pFile!=NULL){
+									fputs ([thing UTF8String],pFile);
+									fclose (pFile);
+								}
+								else{
+								
+								}
+							}
+						
+						}
+					
+					}
+			
+					[things release];
+
+				}
+				printf("  All done for "BOLDWHITE"%s"RESET"\n",image);
+		
+				[fileman release];
+			}
+
+		} 
+		
 
 	}
-	exit(0);
+	if (!inCycript){
+		exit(0);
+	}
 	
 	 
 	

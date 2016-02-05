@@ -48,10 +48,11 @@ BOOL is64BitMachO(const char *image){
 	mach_header_64 machHeader;
 	int n = fread (&machHeader, sizeof (machHeader), 1, machoFile);
   	if (n != 1){
+
 	  	fclose(machoFile);
   		return NO;
   	}
-  	BOOL is64=machHeader.magic==MH_MAGIC_64;
+  	BOOL is64=machHeader.magic!=MH_MAGIC; // instead of ==MH_MAGIC_64
   	fclose(machoFile);
 	return is64;
 
@@ -183,6 +184,7 @@ NSMutableArray * generateForbiddenClassesArray(BOOL isRecursive){
 	[forbiddenClasses addObject:@"TSCHReferenceLineNonStyle"];
 	[forbiddenClasses addObject:@"TSTTableInfo"];
 	[forbiddenClasses addObject:@"TSCHReferenceLineStyle"];
+	[forbiddenClasses addObject:@"AZSharedUserDefaults"];
 	
 	
 	return forbiddenClasses;
@@ -221,7 +223,7 @@ void printHelp(){
 
 	
 	printf("    Structure:\n");
-	printf("        -g   Do not generate symbol names\n"); 
+	printf("        -g   Generate symbol names file\n"); 
 	printf("        -b   Build original directory structure in output dir\n");
 	printf("        -h   Add a \"Headers\" directory to place headers in\n");
 	printf("        -u   Do not include framework when importing headers (\"Header.h\" instead of <frameworkName/Header.h>)\n\n");
