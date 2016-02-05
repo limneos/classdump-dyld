@@ -16,6 +16,7 @@ and dlsym the dumpClass and dumpBundle functions.
 	
 
 This is extremely useful in cases when classdump-dyld cannot inject and dump applications.
+
 ----------------------------- 
 
 Added 64bit executables dumping and single class dumping
