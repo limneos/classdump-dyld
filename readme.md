@@ -16,6 +16,7 @@ and dlsym the dumpClass and dumpBundle functions.
 	
 
 This is extremely useful in cases when classdump-dyld cannot inject and dump applications.
+
 (This makes weak_classdump project obsolete)
 
 ----------------------------- 
