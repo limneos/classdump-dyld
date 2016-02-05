@@ -118,7 +118,7 @@ twitter: @limneos
 Licence
 -----------
 
-classdump-dyld is Copyright (c) 2013-2014 Elias Limneos, licensed under GPLv3.
+classdump-dyld is Copyright (c) 2013-2016 Elias Limneos, licensed under GPLv3.
 
 
 Environment
