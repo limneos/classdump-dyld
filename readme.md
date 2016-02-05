@@ -10,6 +10,11 @@ You can now dlopen /usr/lib/libclassdumpdyld.dylib in cycript after injecting an
 
 and dlsym the dumpClass and dumpBundle functions.
 
+	extern "C" NSString * dumpClass(Class *aClass);
+	
+	extern "C" NSString * dumpBundle(NSBundle *aBundle);
+	
+
 ----------------------------- 
 
 Added 64bit executables dumping and single class dumping
