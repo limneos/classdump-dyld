@@ -1,15 +1,3 @@
-#line 1 "classdumpdyldlib.xm"
-
-
-
-
-
-
-
-
-
-
-
 static BOOL inCycript=NO;
 static BOOL inDebug=NO;
 #define CDLog(...) if (inDebug)NSLog(@"libclassdump-dyld : %@", [NSString stringWithFormat:__VA_ARGS__] )
