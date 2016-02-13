@@ -37,7 +37,7 @@ A typical usage in cycript would be:
 	dumpBundle([NSBundle mainBundle]);
 	@"Wrote all headers to /tmp/SpringBoard"
 	
-	// Dump any bundle load in the process,other than the main bundle 
+	// Dump any bundle other than the main bundle 
 	dumpBundle([NSBundle bundleWithIdentifier:@"com.apple.UIKit"]);
 	@"Wrote all headers to /tmp/UIKit"
 	
