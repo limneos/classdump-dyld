@@ -14,6 +14,8 @@ and dlsym the dumpClass and dumpBundle functions.
 	
 	extern "C" NSString * dumpBundle(NSBundle *aBundle);
 	
+	extern "C" NSString * dumpBundleForClass(Class *aClass);
+	
 
 This is extremely useful in cases when classdump-dyld cannot inject and dump applications.
 
@@ -24,13 +26,25 @@ A typical usage in cycript would be:
 	#cycript -p SpringBoard
 	
 	dlopen("/usr/lib/libclassdumpdyld.dylib",RTLD_NOW);
+
 	dumpBundle=@encode(id(id))(dlsym(RTLD_DEFAULT,"dumpBundle"));
+	dumpClass=@encode(id(id))(dlsym(RTLD_DEFAULT,"dumpClass"));
+	dumpBundleForClass=@encode(id(id))(dlsym(RTLD_DEFAULT,"dumpBundleForClass"));
+	
+	dumpClass(SpringBoard);
+	@"Wrote file /tmp/SpringBoard.h"
 	
 	dumpBundle([NSBundle mainBundle]);
+	@"Wrote all headers to /tmp/SpringBoard"
 	
+	// Dump any bundle load in the process,other than the main bundle 
 	dumpBundle([NSBundle bundleWithIdentifier:@"com.apple.UIKit"]);
+	@"Wrote all headers to /tmp/UIKit"
 	
-
+	// Dump any image loaded in the process using any class name it contains
+	dumpBundleForClass(CallBarControllerModern);
+	@"Wrote all headers to /tmp/CallBar7"
+	
 ----------------------------- 
 
 General Info
