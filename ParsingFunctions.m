@@ -1,5 +1,3 @@
-
-
 /* Note: NSMethodSignature does not support unions or unknown structs on input.
 // However, using NSMethodSignature to break ObjC types apart for parsing seemed to me very convenient.
 // My implementation below encodes the unknown structs 
@@ -11,8 +9,39 @@
 @implementation NSMethodSignature (classdump_dyld_helper)
 
 +(id)cd_signatureWithObjCTypes:(const char *)types{
-	
+  
 	__block NSString *text=[NSString stringWithCString:types encoding:NSUTF8StringEncoding]; 
+
+ 	while ([text rangeOfString:@"("].location!=NSNotFound){
+		
+		NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\(([^\\(\\)]+)\\)" options:nil error:nil];		
+		
+		// test if the anticipated union (embraced in parentheseis) is actually a function definition rather than a union
+		
+		NSRange range=[text rangeOfString:@"\\(([^\\(\\)]+)\\)" options:NSRegularExpressionSearch];
+		NSString *rep=[text substringWithRange:range];
+		NSString *testUnion=[rep stringByReplacingOccurrencesOfString:@"(" withString:@"{"]; //just to test if it internally passes as a masqueraded struct
+		testUnion=[testUnion stringByReplacingOccurrencesOfString:@")" withString:@"}"];
+		if ([testUnion rangeOfString:@"="].location==NSNotFound){
+			// its a function!
+			text=[text stringByReplacingOccurrencesOfString:@"(" withString:@"__FUNCTION_START__"];
+			text=[text stringByReplacingOccurrencesOfString:@")" withString:@"__FUNCTION_END__"];
+			continue;
+		}
+	 	
+		[regex enumerateMatchesInString:text options:0 
+								  range:NSMakeRange(0, [text length]) 
+							 usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
+		{
+ 
+			for (int i = 1; i< [result numberOfRanges] ; i++) {
+				NSString *textFound=[text substringWithRange:[result rangeAtIndex:i]];				 
+				text=[text stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"(%@)",textFound] withString:[NSString stringWithFormat:@"{union={%@}ficificifloc}",textFound]]; //add an impossible match of types
+				*stop=YES;
+			}
+		}];
+			 
+	}
 	
 	if ([text rangeOfString:@"{"].location!=NSNotFound){ 
 	
@@ -44,23 +73,10 @@
 			}
 		}
 	}
-
-	
-	while ([text rangeOfString:@"("].location!=NSNotFound){
-        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\(([^\\(^\\)]+)\\)" options:nil error:nil];
-
-		[regex enumerateMatchesInString:text options:0 
-                                  range:NSMakeRange(0, [text length]) 
-                             usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
-        {
-            for (int i = 1; i< [result numberOfRanges] ; i++) {
-            	NSString *textFound=[text substringWithRange:[result rangeAtIndex:i]];
-            	text=[text stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"(%@)",textFound] withString:[NSString stringWithFormat:@"{union={%@}ficificifloc}",textFound]]; //add an impossible match of types
-                *stop=YES;
-            }
-        }];
-	}
-	
+ 
+	text=[text stringByReplacingOccurrencesOfString:@"__FUNCTION_START__" withString:@"("];
+	text=[text stringByReplacingOccurrencesOfString:@"__FUNCTION_END__" withString:@")"];
+ 	
 	types=[text UTF8String];
 
 	return [self signatureWithObjCTypes:types];
@@ -69,16 +85,16 @@
 -(const char *)cd_getArgumentTypeAtIndex:(int)anIndex{
 	
 	const char *argument= [self getArgumentTypeAtIndex:anIndex];
-	
+
 	NSString *char_ns=[NSString stringWithCString:argument encoding:NSUTF8StringEncoding];
 	__block NSString *text=char_ns;
 	if ([text rangeOfString:@"^^^"].location!=NSNotFound){
 		text=[text stringByReplacingOccurrencesOfString:@"^^^" withString:@""];
 	}
-	
+ 
 	while ([text rangeOfString:@"{union"].location!=NSNotFound){
         
-        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"(\\{union.+ficificifloc\\})" options:nil error:nil];
+        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"(\\{union.+?ficificifloc\\})" options:nil error:nil];
 		[regex enumerateMatchesInString:text options:0 
                                   range:NSMakeRange(0, [text length]) 
                              usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
@@ -96,7 +112,6 @@
 	}
 	
 	char_ns=text;
-	 
 	return [char_ns UTF8String];
 
 }
@@ -269,6 +284,7 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 	
 	unsigned int outCount=0;
 	Protocol ** protList=protocol_copyProtocolList(currentProtocol,&outCount);
+
 	if (outCount>0){
 		[protocolsMethodsString appendString:@" <"];
 	}
@@ -284,7 +300,9 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 	
 	NSMutableString *protPropertiesString=[[NSMutableString alloc] init];
 	unsigned int protPropertiesCount;
+
 	objc_property_t * protPropertyList=protocol_copyPropertyList(currentProtocol,&protPropertiesCount);
+	
 	for (int xi=0; xi<protPropertiesCount; xi++){
 		 
 			const char *propname=property_getName(protPropertyList[xi]);
@@ -306,9 +324,6 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 					[classesInProtocol addObject:classFoundInProperties];
 				}
 			}
-		
-		
-		
 				
 			NSString *newString=propertyLineGenerator([NSString stringWithCString:attrs encoding:NSUTF8StringEncoding],[NSString stringWithCString:propname encoding:NSUTF8StringEncoding]);
 			if ([protPropertiesString rangeOfString:newString].location==NSNotFound){
@@ -318,6 +333,7 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 		
 
 	}
+
 	[protocolsMethodsString appendString:protPropertiesString];
 	
 	free(protPropertyList);
@@ -327,7 +343,7 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 			unsigned int protocolMethodsCount=0;
 			BOOL isRequiredMethod=acase<2 ? NO : YES;
 			BOOL isInstanceMethod=(acase==0 || acase==2) ? NO : YES;
-								
+
 			objc_method_description *protMeths=protocol_copyMethodDescriptionList(currentProtocol, isRequiredMethod, isInstanceMethod, &protocolMethodsCount);
 			for (unsigned gg=0; gg<protocolMethodsCount; gg++){
 				if (acase<2 && [protocolsMethodsString rangeOfString:@"@optional"].location==NSNotFound){
@@ -342,9 +358,11 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 				char *types=selectorsAndTypes.types;
 				NSString *protSelector=NSStringFromSelector(selector);
 				NSString *finString=@"";
+				//CDLog(@"\t\t\t\tAbout to call cd_signatureWithObjCTypes of current protocol with types: %s",types);
 				NSMethodSignature *signature=[NSMethodSignature cd_signatureWithObjCTypes:types];
-			
+				//CDLog(@"\t\t\t\tGot cd_signatureWithObjCTypes of current protocol");			
 				NSString *returnType=commonTypes([NSString stringWithCString:[signature methodReturnType] encoding:NSUTF8StringEncoding],nil,NO);
+
 				NSArray *selectorsArray=[protSelector componentsSeparatedByString:@":"];
 				if (selectorsArray.count>1){
 					int argCount=0;
