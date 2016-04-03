@@ -25,11 +25,7 @@ A typical usage in cycript would be:
 
 	#cycript -p SpringBoard
 	
-	dlopen("/usr/lib/libclassdumpdyld.dylib",RTLD_NOW);
-
-	dumpBundle=@encode(id(id))(dlsym(RTLD_DEFAULT,"dumpBundle"));
-	dumpClass=@encode(id(id))(dlsym(RTLD_DEFAULT,"dumpClass"));
-	dumpBundleForClass=@encode(id(id))(dlsym(RTLD_DEFAULT,"dumpBundleForClass"));
+	@import net.limneos.classdumpdyld;
 	
 	dumpClass(SpringBoard);
 	@"Wrote file /tmp/SpringBoard.h"
