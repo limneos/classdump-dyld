@@ -27,18 +27,18 @@ A typical usage in cycript would be:
 	
 	@import net.limneos.classdumpdyld;
 	
-	dumpClass(SpringBoard);
+	classdumpdyld.dumpClass(SpringBoard);
 	@"Wrote file /tmp/SpringBoard.h"
 	
-	dumpBundle([NSBundle mainBundle]);
+	classdumpdyld.dumpBundle([NSBundle mainBundle]);
 	@"Wrote all headers to /tmp/SpringBoard"
 	
 	// Dump any bundle other than the main bundle 
-	dumpBundle([NSBundle bundleWithIdentifier:@"com.apple.UIKit"]);
+	classdumpdyld.dumpBundle([NSBundle bundleWithIdentifier:@"com.apple.UIKit"]);
 	@"Wrote all headers to /tmp/UIKit"
 	
 	// Dump any image loaded in the process using any class name it contains
-	dumpBundleForClass(CallBarControllerModern);
+	classdumpdyld.dumpBundleForClass(CallBarControllerModern);
 	@"Wrote all headers to /tmp/CallBar7"
 	
 ----------------------------- 
