@@ -279,9 +279,9 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 			NSString *escapedImage = bash_escape([NSString stringWithUTF8String:image]);
 
 			#if defined (__x86_64__) || defined (__i386__)
-				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/local/lib/libclassdumpdyld.dylib %s",[escapedImage UTF8String]];
+				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/local/lib/libclassdumpdyld.dylib %@",escapedImage];
 			#else
-				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %s",[escapedImage UTF8String]];
+				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %@",escapedImage];
 			#endif			
 
 			if (writeToDisk){
