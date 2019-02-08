@@ -1,4 +1,4 @@
-include theos/makefiles/common.mk
+include  $(THEOS)/makefiles/common.mk
 
 LIBRARY_NAME = libclassdumpdyld
 libclassdumpdyld_FILES = classdumpdyldlib.mm

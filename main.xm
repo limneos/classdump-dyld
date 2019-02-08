@@ -11,6 +11,8 @@
 */
 
 static BOOL inDebug=NO;
+static BOOL isIOS11=NO;
+
 #define CDLog(...) if (inDebug)NSLog(@"classdump-dyld : %@", [NSString stringWithFormat:__VA_ARGS__] )
 
 #include "CommonDefines.m"
@@ -29,6 +31,56 @@ static BOOL shouldDLopen32BitExecutables=NO;
 
 /****** Parsing Functions ******/
 #include "ParsingFunctions.m"
+
+
+
+
+typedef void *MSImageRef;
+//#include "substrate.h"
+
+static const struct dyld_all_image_infos *(*my_dyld_get_all_image_infos)();
+static MSImageRef (*_MSGetImageByName)(const char* name);
+static void * (*_MSFindSymbol)(MSImageRef ref,const char* name);
+
+static void findDyldGetAllImageInfosSymbol(){
+	if (dlsym(RTLD_DEFAULT,"_dyld_get_all_image_infos")){
+		my_dyld_get_all_image_infos=(const struct dyld_all_image_infos*(*)(void))dlsym(RTLD_DEFAULT,"_dyld_get_all_image_infos");
+	}
+	else{
+		// find libdyld.dylib ...
+		unsigned int count;
+		const char *dyldImage=NULL;
+		const char **names=objc_copyImageNames(&count);
+		for (unsigned int i=0; i<count; i++){
+
+			if (strstr(names[i],"/libdyld.dylib")){
+				dyldImage=names[i];
+				break;
+			}
+		}
+		if (dyldImage){
+			
+			_MSGetImageByName=(MSImageRef(*)(const char *))dlsym(RTLD_DEFAULT,"MSGetImageByName");
+			_MSFindSymbol=(void*(*)(MSImageRef,const char *))dlsym(RTLD_DEFAULT,"MSFindSymbol");
+			
+			if (!_MSGetImageByName){ // are we in simulator ? try theos dir
+			
+				void *ms=dlopen("/opt/theos/lib/libsubstrate.dylib",RTLD_NOW);
+				_MSGetImageByName=(MSImageRef(*)(const char *))dlsym(ms,"MSGetImageByName");
+				_MSFindSymbol=(void*(*)(MSImageRef,const char *))dlsym(ms,"MSFindSymbol");
+			}
+			
+			MSImageRef msImage=_MSGetImageByName(dyldImage);
+			if (msImage){
+				
+				void *msSymbol=_MSFindSymbol(msImage,"__dyld_get_all_image_infos");
+				if (msSymbol){
+					my_dyld_get_all_image_infos=(const struct dyld_all_image_infos*(*)(void))msSymbol;
+				}
+			}
+		}
+	}
+}
 
 
 /****** Recursive file search ******/
@@ -153,15 +205,21 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 		if (isRecursive && strstr(image,"/var/mobile/Containers/Bundle/Application/")){ //skip Applications dir
 			return 4;
 		}
+		if ((isRecursive && strstr(image,"SubstrateBootstrap.dylib") ) || (isRecursive && strstr(image,"CydiaSubstrate.framework"))){ //skip Applications dir
+			return 4;
+		}
+		
 	}
-
+	if (isIOS11 && strstr(image,"SpringBoardUI")){
+		dlopen("/System/Library/PrivateFrameworks/SearchUI.framework/SearchUI",RTLD_NOW); //rdar://problem/26143166
+	}
 	
 	NSString *imageAsNSString=[[NSString alloc] initWithCString:image encoding:NSUTF8StringEncoding];
 	for (NSString *forbiddenPath in forbiddenPaths){
 		if ([imageAsNSString rangeOfString:forbiddenPath].location!=NSNotFound){
-			NSLog(@"Image %@ cannot be parsed due to know crashing issues.",imageAsNSString);
+			NSLog(@"Image %@ cannot be parsed due to known crashing issues.",imageAsNSString);
 			[imageAsNSString release];
-			return 4;
+			return 5;
 		}
 	}
 		
@@ -262,7 +320,7 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 		}
 	}
 
-	if (image!=nil && ![allImagesProcessed containsObject:[NSString stringWithCString:image encoding:2]] && ((dlopenError && (strstr(dlopenError,"no matching architecture in universal wrapper") || strstr(dlopenError,"out of address space") || strstr(dlopenError,"mach-o, but wrong architecture"))) || (isExec && !shouldDLopen32BitExecutables))){
+	if (image!=nil && ![allImagesProcessed containsObject:[NSString stringWithCString:image encoding:2]] && ((dlopenError && (strstr(dlopenError,"no matching architecture in universal wrapper") || strstr(dlopenError,"not macOS") || strstr(dlopenError,"out of address space") || strstr(dlopenError,"mach-o, but wrong architecture"))) || (isExec && !shouldDLopen32BitExecutables))){
 		@autoreleasepool{
 
 			/*if (fileExistsOnDisk(image) && isExec){
@@ -272,8 +330,10 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 
 			#if defined (__x86_64__) || defined (__i386__)
 				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/local/lib/libclassdumpdyld.dylib %s",image];
+
 			#else
 				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %s",image];
+
 			#endif			
 			
 
@@ -303,7 +363,8 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 			}
 
 			[allImagesProcessed addObject:[NSString stringWithCString:image encoding:2]];
-			system([tryWithLib UTF8String]);
+			int(*_my_system)(const char *)=(int(*)(const char *))dlsym(RTLD_DEFAULT,"system");
+			_my_system([tryWithLib UTF8String]);
 		}
 		if (!isRecursive){
 			return 1;
@@ -392,6 +453,11 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 		if ([forbiddenClasses indexOfObject:classNameNSToRelease]!=NSNotFound){
 			[classNameNSToRelease release];
 			continue;
+		}
+		if ([classNameNSToRelease rangeOfString:@"_INP"].location==0 || [classNameNSToRelease rangeOfString:@"ASV"].location==0){
+			[classNameNSToRelease release];
+			continue;
+		
 		}
 		
 		if (onlyOneClass && ![classNameNSToRelease isEqual:onlyOneClass]){
@@ -832,8 +898,11 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 		
 		struct mach_header * mh=nil;
 		struct mach_header_64 * mh64=nil;
-		int vmaddrImage;
-		dyld_all_image_infos = _dyld_get_all_image_infos();
+
+		if (!my_dyld_get_all_image_infos){
+			findDyldGetAllImageInfosSymbol();	
+		}
+		dyld_all_image_infos = my_dyld_get_all_image_infos();
 		for(int i=0; i<dyld_all_image_infos->infoArrayCount; i++) {
 			if (dyld_all_image_infos->infoArray[i].imageLoadAddress!=NULL){
 				char *currentImage=(char *)dyld_all_image_infos->infoArray[i].imageFilePath;
@@ -845,7 +914,7 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 					else{
 						mh = (struct mach_header *)dyld_all_image_infos->infoArray[i].imageLoadAddress;
 					}
-					vmaddrImage=i;
+
 					break;
 				}
 			}
@@ -1081,6 +1150,7 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 
 int main(int argc, char **argv, char **envp) {
 	
+	isIOS11=[[[NSProcessInfo processInfo] operatingSystemVersionString] rangeOfString:@"Version 11"].location==0 || [[[NSProcessInfo processInfo] operatingSystemVersionString] rangeOfString:@"Version 12"].location==0;
 	
 	@autoreleasepool {
 	
@@ -1095,6 +1165,7 @@ int main(int argc, char **argv, char **envp) {
 		BOOL isSharedCacheRecursive=NO;
 		BOOL skipApplications=YES;
 		 
+		
 		
 		NSString *outputDir=nil;
 		NSString *sourceDir=nil;
@@ -1113,12 +1184,17 @@ int main(int argc, char **argv, char **envp) {
 			exit(0);
 		}
 		
+		
+		
 		for (NSString *arg in arguments){
+			
 		
 			if ([arg isEqual:@"-D"]){
 				inDebug=1;
 				[argumentsToUse removeObject:arg];
 			}
+			
+			
 			
 			if ([arg isEqual:@"-o"]){
 
@@ -1130,7 +1206,7 @@ int main(int argc, char **argv, char **envp) {
 				}
 
 				outputDir=[arguments objectAtIndex:argIndex+1];
-
+				//outputDir=[NSString stringWithFormat:@"\"%@\"",outputDir];
 				if ([outputDir rangeOfString:@"-"].location==0){
 					printHelp();
 					exit(0);
@@ -1187,6 +1263,8 @@ int main(int argc, char **argv, char **envp) {
 				
 			}
 			
+			
+			
 			if ([arg isEqual:@"-a"]){
 				skipApplications=NO;
 				[argumentsToUse removeObject:arg];
@@ -1227,6 +1305,38 @@ int main(int argc, char **argv, char **envp) {
 			if ([arg isEqual:@"-h"]){
 				addHeadersFolder=YES;
 				[argumentsToUse removeObject:arg];				
+			}
+			
+			
+			if ([arg isEqual:@"-x"]){
+
+				int argIndex=[arguments indexOfObject:arg]; 
+
+				if (argIndex==argCount-1){
+					printHelp();
+					exit(0);
+				}
+				
+				int nextEntriesCount=[arguments count]-argIndex-1;
+				int next=1;
+				while (nextEntriesCount){
+					NSString *forbiddenClassAdd=[arguments objectAtIndex:argIndex+next];
+					next++;
+					nextEntriesCount--;
+					if ([forbiddenClassAdd rangeOfString:@"-"].location==0){
+						nextEntriesCount=0;
+						break;
+					}
+					if (!forbiddenClasses){
+						generateForbiddenClassesArray(recursive);
+					}
+					[forbiddenClasses addObject:forbiddenClassAdd];
+					[argumentsToUse removeObject:forbiddenClassAdd];
+
+				}
+		 
+				[argumentsToUse removeObject:arg];
+				
 			}
 
 
@@ -1270,14 +1380,18 @@ int main(int argc, char **argv, char **envp) {
 			}
 		}
 		
+		if (recursive && isSharedCacheRecursive){
+			skipAlreadyFound=YES;
+		}
 		
 		// Begin
 		
 		int RESULT=1;
 		
 		allImagesProcessed=[NSMutableArray array];
-		
-		generateForbiddenClassesArray(recursive);
+		if (!forbiddenClasses){
+			generateForbiddenClassesArray(recursive);
+		}
 		generateForbiddenPathsArray(recursive);
 
 		NSString *inoutputDir=outputDir;
@@ -1312,13 +1426,14 @@ int main(int argc, char **argv, char **envp) {
 			_cacheData = (uint8_t *)mmap(NULL, filesize, PROT_READ, MAP_PRIVATE, fd, 0);
 			_cacheHead = (struct cache_header *)_cacheData;
 			uint64_t curoffset = _cacheHead->startaddr;
+			
 			for (unsigned i = 0; i < _cacheHead->numlibs; ++ i) {
 				uint64_t fo = *(uint64_t *)(_cacheData + curoffset + 24);
 				curoffset += 32;
 				char *imageInCache=(char*)_cacheData + fo;
 				
 				// a few blacklisted frameworks that crash
-				if (strstr(imageInCache,"WebKitLegacy") || strstr(imageInCache,"VisualVoicemail") || strstr(imageInCache,"/System/Library/Frameworks/CoreGraphics.framework/Resources/") || strstr(imageInCache,"JavaScriptCore.framework") || strstr(imageInCache,"GameKitServices.framework") || strstr(imageInCache,"VectorKit")){
+				if ( strstr(imageInCache,"Powerlog") || strstr(imageInCache,"Parsec") || strstr(imageInCache,"WebKitLegacy") || strstr(imageInCache,"VisualVoicemail") || strstr(imageInCache,"/System/Library/Frameworks/CoreGraphics.framework/Resources/") || strstr(imageInCache,"JavaScriptCore.framework") || strstr(imageInCache,"GameKitServices.framework") || strstr(imageInCache,"VectorKit")){
 					continue;
 				}
 				
