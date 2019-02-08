@@ -33,6 +33,7 @@ static BOOL shouldDLopen32BitExecutables=NO;
 #include "ParsingFunctions.m"
 
 
+<<<<<<< HEAD
 
 
 typedef void *MSImageRef;
@@ -83,6 +84,14 @@ static void findDyldGetAllImageInfosSymbol(){
 }
 
 
+=======
+static NSString *bash_escape(NSString *rawCommand){
+	NSString *escapedString = [rawCommand stringByReplacingOccurrencesOfString:@"\\" withString:@"\\\\"];
+	escapedString = [escapedString stringByReplacingOccurrencesOfString:@" " withString:@"\\ "];
+	return escapedString;
+}
+
+>>>>>>> 56ebf39726489ce72cdb83d724d8ab10040ddb58
 /****** Recursive file search ******/
 
 static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL recursive,BOOL simpleHeader,BOOL skipAlreadyFound,BOOL skipApplications){
@@ -328,14 +337,21 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 				system([exec UTF8String]);
 			}*/
 
+			NSString *escapedImage = bash_escape([NSString stringWithUTF8String:image]);
+
 			#if defined (__x86_64__) || defined (__i386__)
+<<<<<<< HEAD
 				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/local/lib/libclassdumpdyld.dylib %s",image];
 
 			#else
 				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %s",image];
 
+=======
+				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/local/lib/libclassdumpdyld.dylib %@",escapedImage];
+			#else
+				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %@",escapedImage];
+>>>>>>> 56ebf39726489ce72cdb83d724d8ab10040ddb58
 			#endif			
-			
 
 			if (writeToDisk){
 				tryWithLib=[tryWithLib stringByAppendingString:[NSString stringWithFormat:@" -o %@",outputDir]];
