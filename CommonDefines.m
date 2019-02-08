@@ -27,8 +27,9 @@ NSString *onlyOneClass=nil;
 -(id)reversedArray;
 @end
 
+
 const struct dyld_all_image_infos *dyld_all_image_infos;
-extern "C" struct dyld_all_image_infos* _dyld_get_all_image_infos();
+//extern "C" struct dyld_all_image_infos* _dyld_get_all_image_infos();
 NSString * propertyLineGenerator(NSString *attributes,NSString *name);
 NSString * commonTypes(NSString *atype,NSString **inName,BOOL inIvarList);
 

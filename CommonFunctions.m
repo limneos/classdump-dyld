@@ -92,7 +92,10 @@ static BOOL priorToiOS7(){
 
 
 NSMutableArray * generateForbiddenClassesArray(BOOL isRecursive){
-		
+	
+	BOOL IOS11=[[[NSProcessInfo processInfo] operatingSystemVersionString] rangeOfString:@"Version 11"].location==0;
+	BOOL IOS12=[[[NSProcessInfo processInfo] operatingSystemVersionString] rangeOfString:@"Version 12"].location==0;
+	
 	forbiddenClasses=[[NSMutableArray alloc] init];
 
 	if (priorToiOS7()){
@@ -185,7 +188,38 @@ NSMutableArray * generateForbiddenClassesArray(BOOL isRecursive){
 	[forbiddenClasses addObject:@"TSTTableInfo"];
 	[forbiddenClasses addObject:@"TSCHReferenceLineStyle"];
 	[forbiddenClasses addObject:@"AZSharedUserDefaults"];
-	
+	[forbiddenClasses addObject:@"NSLeafProxy"];
+	[forbiddenClasses addObject:@"FigIrisAutoTrimmerMotionSampleExport"];
+	[forbiddenClasses addObject:@"RCDebugRecordingController"];
+	[forbiddenClasses addObject:@"CoreKnowledge.CKInMemoryKnowledgeStorage"];
+	[forbiddenClasses addObject:@"CoreKnowledge.CKUserDefaultsKnowledgeStorage"];
+	[forbiddenClasses addObject:@"CoreKnowledge.CKSQLKnowledgeStorage"];
+	[forbiddenClasses addObject:@"CoreKnowledge.CKEntity"];
+	[forbiddenClasses addObject:@"CoreKnowledge.CKKnowledgeStore"];
+	[forbiddenClasses addObject:@"JSExport"];
+	[forbiddenClasses addObject:@"SBClockApplicationIconImageView"];
+	if (IOS11 || IOS12){
+		[forbiddenClasses addObject:@"SKTransformNode"];
+		[forbiddenClasses addObject:@"OZFxPlugParameterHandler"];
+		[forbiddenClasses addObject:@"OZFxPlugParameterHandler_v4"];
+		[forbiddenClasses addObject:@"PAETransitionDefaultBase"];
+		[forbiddenClasses addObject:@"PAEGeneratorDefaultBase"];
+		[forbiddenClasses addObject:@"PAEFilterDefaultBase"];
+		[forbiddenClasses addObject:@"MTLToolsDevice"];
+		[forbiddenClasses addObject:@"CMMTLDevice"];
+		[forbiddenClasses addObject:@"SBReachabilityManager"];
+		[forbiddenClasses addObject:@"IGRTCBroadcastSession"];
+		[forbiddenClasses addObject:@"FBVideoBroadcastSwitchableSession"];
+		[forbiddenClasses addObject:@"FBVideoBroadcastSessionBase"];
+		[forbiddenClasses addObject:@"NFSecureElementWrapper"];
+
+		[forbiddenClasses addObject:@"JTImageView"];
+		[forbiddenClasses addObject:@"PNPWizardScratchpadInkView"];
+		[forbiddenClasses addObject:@"PFMulticasterDistributionMethods"];
+		[forbiddenClasses addObject:@"PFEmbeddedMulticasterImplementation"];
+		[forbiddenClasses addObject:@"AAJSON"];
+		    
+	}
 	
 	return forbiddenClasses;
 }
@@ -323,11 +357,12 @@ NSMutableArray * generateForbiddenPathsArray(BOOL isRecursive){
 	forbiddenPaths=[[NSMutableArray alloc] init];
 	// The following paths are skipped for known issues that arise when their symbols are added to the flat namespace
 	
-	
+	[forbiddenPaths addObject:@"/usr/bin"];
 	[forbiddenPaths addObject:@"/Developer"];
 	[forbiddenPaths addObject:@"/Library/Switches"];
 	[forbiddenPaths addObject:@"SBSettings"];
 	[forbiddenPaths addObject:@"Activator"];
+	[forbiddenPaths addObject:@"launchd"];
 	if (priorToiOS7()){
 		[forbiddenPaths addObject:@"/System/Library/Frameworks/PassKit.framework/passd"];
 	}
@@ -356,7 +391,7 @@ NSMutableArray * generateForbiddenPathsArray(BOOL isRecursive){
 
 
 int locationOfString(const char *haystack, const char *needle){
-	char * found = strstr( haystack, needle );
+	const char * found = strstr( haystack, needle );
 	int anIndex=-1;
 	if (found != NULL){
 	  anIndex = found - haystack;
