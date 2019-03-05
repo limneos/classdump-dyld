@@ -1,0 +1,9 @@
+Package: net.limneos.classdump-dyld
+Name: classdump-dyld
+Version: 1.1
+Architecture: iphoneos-arm
+Description: Class-dump most images on device or shared cache
+Author: Elias Limneos <limneoselias@gmail.com>
+Section: System
+Tag: purpose::extension, role::developer
+dev: limneos
