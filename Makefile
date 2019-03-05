@@ -6,7 +6,7 @@ export ARCHS=armv7 arm64
 #export ARCHS=x86_64 
 include theos/makefiles/common.mk
 TOOL_NAME = classdump-dyld
-classdump-dyld_FILES = main.xm
+classdump-dyld_FILES = main.mm
 classdump-dyld_LDFLAGS = -Wl,-segalign,0x4000
 classdump-dyld_CODESIGN_FLAGS = -Sent.plist
 include theos/makefiles/tool.mk
