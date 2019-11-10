@@ -120,8 +120,6 @@ by Elias Limneos
 ----------------
 web: limneos.net
 
-email: iphone (at) limneos (dot) net
-
 twitter: @limneos
 
 
