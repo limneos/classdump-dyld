@@ -9,7 +9,8 @@
 @implementation NSMethodSignature (classdump_dyld_helper)
 
 +(id)cd_signatureWithObjCTypes:(const char *)types{
-  
+  	
+
 	__block NSString *text=[NSString stringWithCString:types encoding:NSUTF8StringEncoding]; 
 
  	while ([text rangeOfString:@"("].location!=NSNotFound){
@@ -85,6 +86,7 @@
 -(const char *)cd_getArgumentTypeAtIndex:(int)anIndex{
 	
 	const char *argument= [self getArgumentTypeAtIndex:anIndex];
+	
 
 	NSString *char_ns=[NSString stringWithCString:argument encoding:NSUTF8StringEncoding];
 	__block NSString *text=char_ns;
@@ -277,6 +279,7 @@ static NSMutableArray * propertiesArrayFromString(NSString *propertiesString){
 NSString * buildProtocolFile(Protocol *currentProtocol){
 	
 	NSMutableString * protocolsMethodsString=[[NSMutableString alloc] init];
+	
 
 	NSString *protocolName=[NSString stringWithCString:protocol_getName(currentProtocol) encoding:NSUTF8StringEncoding];
 	[protocolsMethodsString appendString:[NSString stringWithFormat:@"\n@protocol %@",protocolName]];
@@ -310,6 +313,7 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 		
 		
 			NSCharacterSet *parSet=[NSCharacterSet characterSetWithCharactersInString:@"()"];
+
 			NSString *attributes=[[NSString stringWithCString:attrs encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:parSet];
 			NSMutableArray *attrArr=(NSMutableArray *)[attributes componentsSeparatedByString:@","];
 			NSString *type=[attrArr objectAtIndex:0] ;
@@ -324,7 +328,7 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 					[classesInProtocol addObject:classFoundInProperties];
 				}
 			}
-				
+
 			NSString *newString=propertyLineGenerator([NSString stringWithCString:attrs encoding:NSUTF8StringEncoding],[NSString stringWithCString:propname encoding:NSUTF8StringEncoding]);
 			if ([protPropertiesString rangeOfString:newString].location==NSNotFound){
 				[protPropertiesString appendString:newString];
@@ -360,7 +364,8 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 				NSString *finString=@"";
 				//CDLog(@"\t\t\t\tAbout to call cd_signatureWithObjCTypes of current protocol with types: %s",types);
 				NSMethodSignature *signature=[NSMethodSignature cd_signatureWithObjCTypes:types];
-				//CDLog(@"\t\t\t\tGot cd_signatureWithObjCTypes of current protocol");			
+				//CDLog(@"\t\t\t\tGot cd_signatureWithObjCTypes of current protocol");
+
 				NSString *returnType=commonTypes([NSString stringWithCString:[signature methodReturnType] encoding:NSUTF8StringEncoding],nil,NO);
 
 				NSArray *selectorsArray=[protSelector componentsSeparatedByString:@":"];
@@ -369,6 +374,7 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 					for (unsigned ad=2;ad<[signature numberOfArguments]; ad++){	
 						argCount++;
 						NSString *space=ad==[signature numberOfArguments]-1 ? @"" : @" ";
+
 						finString=[finString stringByAppendingString:[NSString stringWithFormat:@"%@:(%@)arg%d%@" ,[selectorsArray objectAtIndex:ad-2],commonTypes([NSString stringWithCString:[signature cd_getArgumentTypeAtIndex:ad] encoding:NSUTF8StringEncoding],nil,NO),argCount,space]];
 					}				
 				}
@@ -1287,6 +1293,8 @@ NSString * generateMethodLines(Class someclass,BOOL isInstanceMethod,NSMutableAr
 		char * returnType=method_copyReturnType(currentMethod);
 		const char *selectorName=sel_getName(sele);
 		NSString *returnTypeSameAsProperty=nil;
+		
+
 		NSString *SelectorNameNS=[NSString stringWithCString:selectorName encoding:NSUTF8StringEncoding] ;
 		if ([SelectorNameNS rangeOfString:@"."].location==0){ //.cxx.destruct etc
 			continue;
@@ -1300,6 +1308,7 @@ NSString * generateMethodLines(Class someclass,BOOL isInstanceMethod,NSMutableAr
 		}
 		NSString *startSign=isInstanceMethod ? @"-" : @"+";
 		
+
 		NSString *startTypes=returnTypeSameAsProperty ? [NSString stringWithFormat:@"\n%@(%@)",startSign,returnTypeSameAsProperty] : [NSString stringWithFormat:@"\n%@(%@)",startSign,commonTypes([NSString stringWithCString:returnType encoding:NSUTF8StringEncoding],nil,NO)];
 		[returnTypeSameAsProperty release];
 		free(returnType);
@@ -1326,6 +1335,7 @@ NSString * generateMethodLines(Class someclass,BOOL isInstanceMethod,NSMutableAr
 					returnString=[[[returnString autorelease] stringByAppendingString:[NSString stringWithFormat:@"%@:(%@)arg%d ",[selValuesArray objectAtIndex:i-2],methodTypeSameAsProperty,i-1]] retain];
 				}
 				else{
+
 					returnString=[[[returnString autorelease] stringByAppendingString:[NSString stringWithFormat:@"%@:(%@)arg%d ",[selValuesArray objectAtIndex:i-2],commonTypes([NSString stringWithCString:methodType encoding:NSUTF8StringEncoding],nil,NO),i-1]] retain];
 				}
 				[methodTypeSameAsProperty release];

@@ -17,7 +17,7 @@ static BOOL isIOS11=NO;
 
 #include "CommonDefines.m"
 
-extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL isRecursive,BOOL buildOriginalDirs,BOOL simpleHeader,BOOL skipAlreadyFound,BOOL skipApplications);
+extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL isRecursive,BOOL buildOriginalDirs,BOOL simpleHeader,BOOL skipAlreadyFound,BOOL skipApplications,int percent);
 
 static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL recursive,BOOL simpleHeader,BOOL skipAlreadyFound,BOOL skipApplications);
 static NSMutableArray *allImagesProcessed;
@@ -83,14 +83,6 @@ static void findDyldGetAllImageInfosSymbol(){
 }
 
 
-
-static NSString *bash_escape(NSString *rawCommand){
-	NSString *escapedString = [rawCommand stringByReplacingOccurrencesOfString:@"\\" withString:@"\\\\"];
-	escapedString = [escapedString stringByReplacingOccurrencesOfString:@" " withString:@"\\ "];
-	return escapedString;
-}
-
-
 /****** Recursive file search ******/
 
 static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL recursive,BOOL simpleHeader,BOOL skipAlreadyFound,BOOL skipApplications){
@@ -135,8 +127,15 @@ static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,B
 		if (strcmp(d_name,".") && strcmp(d_name,"..")){
 		
 			NSAutoreleasePool *p=[[NSAutoreleasePool alloc] init];
+			if (!dir_name){
+				printf("\n stringWithCString dir_name empty \n");
+			}
 			NSString *currentPath=[NSString stringWithCString:dir_name encoding:NSUTF8StringEncoding];
 			currentPath=[currentPath stringByReplacingOccurrencesOfString:@"//" withString:@"/"];
+			if (!d_name){
+				printf("\n stringWithCString d_name empty \n");
+			}
+
 			NSString *currentFile=[NSString stringWithCString:d_name encoding:NSUTF8StringEncoding];
 			NSString *imageToPass=[NSString stringWithFormat:@"%@/%@",currentPath,currentFile];
 			
@@ -152,7 +151,7 @@ static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,B
 					skipString=[skipString stringByReplacingOccurrencesOfString:@".app" withString:@""];
 					
 					if ([skipString isEqualToString:[imageToPass lastPathComponent]]){
-						parseImage((char *)[imageToPass UTF8String ],writeToDisk,outputDir,getSymbols,recursive,YES,simpleHeader,skipAlreadyFound,skipApplications);
+						parseImage((char *)[imageToPass UTF8String ],writeToDisk,outputDir,getSymbols,recursive,YES,simpleHeader,skipAlreadyFound,skipApplications,0);
 
 					}
 			
@@ -160,7 +159,7 @@ static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,B
 			
 				else{
 
-					parseImage((char *)[imageToPass UTF8String ],writeToDisk,outputDir,getSymbols,recursive,YES,simpleHeader,skipAlreadyFound,skipApplications);	
+					parseImage((char *)[imageToPass UTF8String ],writeToDisk,outputDir,getSymbols,recursive,YES,simpleHeader,skipAlreadyFound,skipApplications,0);	
 				}
 			}
 			
@@ -194,7 +193,7 @@ static void list_dir(const char *dir_name,BOOL writeToDisk,NSString *outputDir,B
 
 /****** The actual job ******/
 
-extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL isRecursive,BOOL buildOriginalDirs,BOOL simpleHeader, BOOL skipAlreadyFound,BOOL skipApplications){
+extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL getSymbols,BOOL isRecursive,BOOL buildOriginalDirs,BOOL simpleHeader, BOOL skipAlreadyFound,BOOL skipApplications,int percent){
 
 
 	if (!image){
@@ -236,6 +235,11 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 	
 	
 	NSAutoreleasePool *xd=[[NSAutoreleasePool alloc] init];
+	
+	if (!image){
+		printf("\n stringWithCString image empty \n");
+	}
+
 	if (isRecursive && ([[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/dev"].location==0 || [[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/bin"].location==0 || (skipApplications && [[NSString stringWithCString:image encoding:NSUTF8StringEncoding] rangeOfString:@"/var"].location==0))){
 		[xd drain];
 		return 4;
@@ -336,17 +340,14 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 				system([exec UTF8String]);
 			}*/
 
-			NSString *escapedImage = bash_escape([NSString stringWithUTF8String:image]);
-
 			#if defined (__x86_64__) || defined (__i386__)
 				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/local/lib/libclassdumpdyld.dylib %s",image];
-			//#else
-	//			NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %s",image];
-			//	NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/local/lib/libclassdumpdyld.dylib %@",escapedImage];
+
 			#else
-				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %@",escapedImage];
+				NSString *tryWithLib=[NSString stringWithFormat:@"DYLD_INSERT_LIBRARIES=/usr/lib/libclassdumpdyld.dylib %s",image];
 
 			#endif			
+			
 
 			if (writeToDisk){
 				tryWithLib=[tryWithLib stringByAppendingString:[NSString stringWithFormat:@" -o %@",outputDir]];
@@ -404,7 +405,13 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 	const char **names = objc_copyClassNamesForImage(image,&count);
 	CDLog(@"Did return class count %d",count);
 	if (count){
-		printf("  Dumping "BOLDWHITE"%s"RESET"...(%d classes) %s \n",image ,count,[print_free_memory() UTF8String]);
+		
+		if (percent){
+			printf("  Dumping "BOLDWHITE"%s"RESET"...(%d classes) (%d%%) %s \n",image ,count, percent, [print_free_memory() UTF8String]);
+		}
+		else{
+			printf("  Dumping "BOLDWHITE"%s"RESET"...(%d classes) %s \n",image ,count,[print_free_memory() UTF8String]);
+		}
 	}	
 
 	while ([outputDir rangeOfString:@"/" options:NSBackwardsSearch].location==outputDir.length-1){
@@ -480,13 +487,16 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 		
 		actuallyProcesssedCount++;
 		
-		CDLog(@"Processing Class %s\n",names[i]);
+		CDLog(@"Processing Class %s (%d/%d)\n",names[i],i,count);
 		
 		if (writeToDisk){
 			loadBar(i, count, 100, 50,names[i]);   
 		}
 			
-		
+		if (!names[i]){
+			printf("\n stringWithCString names[i] empty \n");
+		}
+
 		NSString *classNameNS=[NSString stringWithCString:names[i] encoding:NSUTF8StringEncoding];
 		while ([classNameNS rangeOfString:@"_"].location==0){
 
@@ -524,6 +534,10 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 			}
 			const char *protocolName=protocol_getName(protocolArray[t]);
 			
+			if (!protocolName){
+				printf("\n stringWithCString protocolName empty \n");
+			}
+
 			NSString *addedProtocol=[[NSString stringWithCString:protocolName encoding:NSUTF8StringEncoding] retain];
 			if (t<protocolCount-1){
 				addedProtocol=[[[addedProtocol autorelease] stringByAppendingString:@", "] retain];
@@ -570,6 +584,10 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 			Protocol *protocol=protocolArray[d];
 			const char *protocolName=protocol_getName(protocol);
 			
+			if (!protocolName){
+				printf("\n stringWithCString protocolName empty \n");
+			}
+
 			NSString *protocolNSString=[NSString stringWithCString:protocolName encoding:NSUTF8StringEncoding];
 			if (writeToDisk){
 				if (simpleHeader){
@@ -581,6 +599,11 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 					NSString *imageOfProtocol=nil;
 
 					protocolPrefix=[protocolNSString rangeOfString:@"_"].location==0 ? [[protocolNSString substringFromIndex:1] substringToIndex:2] : [protocolNSString substringToIndex:2];
+					if (!class_getImageName(protocol)){
+						printf("\n stringWithCString class_getImageName(protocol) empty \n");
+					}
+
+					
 					imageOfProtocol=([imagePrefix isEqual:protocolPrefix] || !class_getImageName(protocol) ) ? imageName : [NSString stringWithCString:class_getImageName(protocol) encoding:NSUTF8StringEncoding];
 					imageOfProtocol=[imageOfProtocol lastPathComponent];
 					
@@ -632,53 +655,65 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 			for (unsigned x=0;x<ivarOutCount;x++){
 				Ivar currentIvar=ivarArray[x];
 				const char * ivarName=ivar_getName(currentIvar);
+	
+				if (!ivarName){
+					printf("\n stringWithCString ivarName empty \n");
+				}
 
 				NSString *ivarNameNS=[NSString stringWithCString:ivarName encoding:NSUTF8StringEncoding];
 				const char * ivarType=ivar_getTypeEncoding(currentIvar);
-
-				NSString *ivarTypeString=commonTypes([NSString stringWithCString:ivarType encoding:NSUTF8StringEncoding],&ivarNameNS,YES);
+				
+				if (!ivarType){
+					printf("\n stringWithCString ivarType empty for ivarName %s in class %s with ivar count %u \n",ivarName,[[currentClass description] UTF8String],ivarOutCount);
+				}
+				NSString *ivarTypeString=NULL;
+				if (ivarType){
+					ivarTypeString=commonTypes([NSString stringWithCString:ivarType encoding:NSUTF8StringEncoding],&ivarNameNS,YES);
 			
-				if ([ivarTypeString rangeOfString:@"@\""].location!=NSNotFound){
-					ivarTypeString=[ivarTypeString stringByReplacingOccurrencesOfString:@"@\"" withString:@""];
-					ivarTypeString=[ivarTypeString stringByReplacingOccurrencesOfString:@"\"" withString:@"*"];
-					NSString *classFoundInIvars=[ivarTypeString stringByReplacingOccurrencesOfString:@"*" withString:@""];
-					if (![classesInClass containsObject:classFoundInIvars]){
+					if ([ivarTypeString rangeOfString:@"@\""].location!=NSNotFound){
+						ivarTypeString=[ivarTypeString stringByReplacingOccurrencesOfString:@"@\"" withString:@""];
+						ivarTypeString=[ivarTypeString stringByReplacingOccurrencesOfString:@"\"" withString:@"*"];
+						NSString *classFoundInIvars=[ivarTypeString stringByReplacingOccurrencesOfString:@"*" withString:@""];
+						if (![classesInClass containsObject:classFoundInIvars]){
 						
 
-						if ([classFoundInIvars rangeOfString:@"<"].location!=NSNotFound ){
+							if ([classFoundInIvars rangeOfString:@"<"].location!=NSNotFound ){
 
-								int firstOpening=[classFoundInIvars rangeOfString:@"<"].location;
-								if (firstOpening!=0){
-									NSString *classToAdd=[classFoundInIvars substringToIndex:firstOpening];
-									if (![classesInClass containsObject:classToAdd]){
-										[classesInClass addObject:classToAdd];				
+									int firstOpening=[classFoundInIvars rangeOfString:@"<"].location;
+									if (firstOpening!=0){
+										NSString *classToAdd=[classFoundInIvars substringToIndex:firstOpening];
+										if (![classesInClass containsObject:classToAdd]){
+											[classesInClass addObject:classToAdd];				
+										}
 									}
-								}
 
-								NSString *protocolToAdd=[classFoundInIvars substringFromIndex:firstOpening];
-								protocolToAdd=[protocolToAdd stringByReplacingOccurrencesOfString:@"<" withString:@""];
-								protocolToAdd=[protocolToAdd stringByReplacingOccurrencesOfString:@">" withString:@""];
-								protocolToAdd=[protocolToAdd stringByReplacingOccurrencesOfString:@"*" withString:@""];
-								if (![inlineProtocols containsObject:protocolToAdd]){	
-									[inlineProtocols addObject:protocolToAdd];
-								}
+									NSString *protocolToAdd=[classFoundInIvars substringFromIndex:firstOpening];
+									protocolToAdd=[protocolToAdd stringByReplacingOccurrencesOfString:@"<" withString:@""];
+									protocolToAdd=[protocolToAdd stringByReplacingOccurrencesOfString:@">" withString:@""];
+									protocolToAdd=[protocolToAdd stringByReplacingOccurrencesOfString:@"*" withString:@""];
+									if (![inlineProtocols containsObject:protocolToAdd]){	
+										[inlineProtocols addObject:protocolToAdd];
+									}
 							
+							}
+							else{
+								[classesInClass addObject:classFoundInIvars];
+							}
 						}
-						else{
-							[classesInClass addObject:classFoundInIvars];
-						}
-					}
-					if ([ivarTypeString rangeOfString:@"<"].location!=NSNotFound){
-						ivarTypeString=[ivarTypeString stringByReplacingOccurrencesOfString:@">*" withString:@">"];
-						if ([ivarTypeString rangeOfString:@"<"].location==0){
-							ivarTypeString=[@"id" stringByAppendingString:ivarTypeString];
-						}
-						else{
-							ivarTypeString=[ivarTypeString stringByReplacingOccurrencesOfString:@"<" withString:@"*<"];			
+						if ([ivarTypeString rangeOfString:@"<"].location!=NSNotFound){
+							ivarTypeString=[ivarTypeString stringByReplacingOccurrencesOfString:@">*" withString:@">"];
+							if ([ivarTypeString rangeOfString:@"<"].location==0){
+								ivarTypeString=[@"id" stringByAppendingString:ivarTypeString];
+							}
+							else{
+								ivarTypeString=[ivarTypeString stringByReplacingOccurrencesOfString:@"<" withString:@"*<"];			
+							}
 						}
 					}
 				}
-
+				else{
+					ivarTypeString=@"???";
+				}
 				NSString *formatted=[NSString stringWithFormat:@"\n\t%@ %@;",ivarTypeString,ivarNameNS];
 				[dumpString appendString:formatted];
 				
@@ -715,7 +750,14 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 	
 			const char *propname=property_getName(propertyList[b]);
 			const char *attrs=property_getAttributes(propertyList[b]);
-			
+			if (!attrs){
+				printf("\n stringWithCString attrs empty \n");
+			}
+			if (!propname){
+				printf("\n stringWithCString propname empty \n");
+			}
+
+
 			NSString *newString=propertyLineGenerator([NSString stringWithCString:attrs encoding:NSUTF8StringEncoding],[NSString stringWithCString:propname encoding:NSUTF8StringEncoding]);
 			if ([propertiesString rangeOfString:newString].location==NSNotFound){
 				propertiesString= [[[propertiesString autorelease] stringByAppendingString:newString] retain];
@@ -782,6 +824,11 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 		
 		if (writeToDisk && [classesInClass count]>0){
 			
+			if (!names[i]){
+				printf("\n stringWithCString names[i] empty \n");
+			}
+
+
 			[classesInClass removeObject:[NSString stringWithCString:names[i] encoding:NSUTF8StringEncoding]];
 			if ([classesInClass count]>0){
 				int firstInteface=[dumpString rangeOfString:@"@interface"].location;
@@ -1018,7 +1065,10 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 								NSString *copyrightString=copyrightMessage(image);
 								[symbolsString appendString:[copyrightString stringByReplacingOccurrencesOfString:@"This header" withString:@"This output"]];
 								[copyrightString release];	
-								
+								if (!str){
+									printf("\n stringWithCString str empty \n");
+								}
+
 								[symbolsString appendString :[NSString stringWithFormat:@"\nSymbols found in %s:\n%@\n",image,[NSString stringWithCString:str encoding:NSUTF8StringEncoding]]] ;
 							}
 							else{
@@ -1111,7 +1161,10 @@ extern "C" int parseImage(char *image,BOOL writeToDisk,NSString *outputDir,BOOL 
 								NSString *copyrightString=copyrightMessage(image);
 								[symbolsString appendString:[copyrightString stringByReplacingOccurrencesOfString:@"This header" withString:@"This output"]];
 								[copyrightString release];						
-								
+								if (!str){
+									printf("\n stringWithCString str empty \n");
+								}
+
 								[symbolsString appendString :[NSString stringWithFormat:@"\nSymbols found in %s:\n%@\n",image,[NSString stringWithCString:str encoding:NSUTF8StringEncoding]]] ;
 							}
 							else{
@@ -1451,8 +1504,9 @@ int main(int argc, char **argv, char **envp) {
 				NSMutableString *imageToNSString=[[NSMutableString alloc] initWithCString:imageInCache encoding:NSUTF8StringEncoding];
 				[imageToNSString replaceOccurrencesOfString:@"///" withString:@"/" options:nil range:NSMakeRange(0, [imageToNSString length])];
 				[imageToNSString replaceOccurrencesOfString:@"//" withString:@"/" options:nil range:NSMakeRange(0, [imageToNSString length])];
+				double prct=(double)((double)i/(double)_cacheHead->numlibs)*(double)100;
 				CDLog(@"Current Image %@",imageToNSString);
-				parseImage((char *)[imageToNSString UTF8String],writeToDisk,outputDir,getSymbols,YES,YES,simpleHeader,skipAlreadyFound,skipApplications);
+				parseImage((char *)[imageToNSString UTF8String],writeToDisk,outputDir,getSymbols,YES,YES,simpleHeader,skipAlreadyFound,skipApplications,(int)prct);
 				[imageToNSString release];
 				
 			}
@@ -1510,7 +1564,7 @@ int main(int argc, char **argv, char **envp) {
 					
 					}
 				}
-				RESULT = parseImage(image,writeToDisk,outputDir,getSymbols,NO,buildOriginalDirs,simpleHeader,NO,skipApplications);
+				RESULT = parseImage(image,writeToDisk,outputDir,getSymbols,NO,buildOriginalDirs,simpleHeader,NO,skipApplications,0);
 				[fileman release];
 			}
 		}

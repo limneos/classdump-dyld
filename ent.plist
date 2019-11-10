@@ -4,7 +4,9 @@
 <dict>
 	<key>platform-application</key>
 	<true/>
-	 <key>com.apple.private.skip-library-validation</key>
+	<key>com.apple.springboard-ui.client</key>
+        <true/>
+	<key>com.apple.private.skip-library-validation</key>
         <true/>
 	<key>com.apple.springboard.remote-alert</key>
 	<true/>

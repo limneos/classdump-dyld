@@ -220,6 +220,33 @@ NSMutableArray * generateForbiddenClassesArray(BOOL isRecursive){
 		[forbiddenClasses addObject:@"AAJSON"];
 		    
 	}
+	[forbiddenClasses addObject:@"_UISearchBarVisualProviderIOS"];
+	[forbiddenClasses addObject:@"_UISearchBarVisualProviderLegacy"];
+	[forbiddenClasses addObject:@"VNFaceObservation"];	
+	[forbiddenClasses addObject:@"CMMTLDevice"];	
+	[forbiddenClasses addObject:@"SKTransformNode"];
+	[forbiddenClasses addObject:@"AASession"];
+	[forbiddenClasses addObject:@"TeaFoundation.DynamicLocale"];
+	[forbiddenClasses addObject:@"CoreKnowledge.SRIngestor"];
+	[forbiddenClasses addObject:@"CKHistoricEvent"];
+	[forbiddenClasses addObject:@"SUICFlamesViewLegacy"];
+	[forbiddenClasses addObject:@"SUICFlamesViewMetal"];
+	[forbiddenClasses addObject:@"JTImageView"];
+	[forbiddenClasses addObject:@"MTLToolsDevice"];
+	[forbiddenClasses addObject:@"PNPWizardScratchpadInkView"];
+	[forbiddenClasses addObject:@"OZFxPlugParameterHandler"];
+	[forbiddenClasses addObject:@"OZFxPlugParameterHandler_v4"];
+	[forbiddenClasses addObject:@"PAETransitionDefaultBase"];
+	[forbiddenClasses addObject:@"PAEGeneratorDefaultBase"];
+	[forbiddenClasses addObject:@"PAEFilterDefaultBase"];
+	[forbiddenClasses addObject:@"USKData"];
+	[forbiddenClasses addObject:@"USKProperty"];
+	[forbiddenClasses addObject:@"NTKPrideLinearQuad"];
+	[forbiddenClasses addObject:@"NTKPrideCircularQuad"];
+	[forbiddenClasses addObject:@"NTKPrideSplinesQuad"];
+	[forbiddenClasses addObject:@"Highlights.FallbackHighlightViewModel"];
+	[forbiddenClasses addObject:@"HighlightsHeavy.FallbackHighlightViewModel"];
+	
 	
 	return forbiddenClasses;
 }
@@ -385,6 +412,9 @@ NSMutableArray * generateForbiddenPathsArray(BOOL isRecursive){
 		[forbiddenPaths addObject:@"Mail.siriUIBundle"];
 		[forbiddenPaths addObject:@"TTSPlugins"];
 	}
+	[forbiddenPaths addObject:@"AppAnalytics"];
+	[forbiddenPaths addObject:@"CoreKnowledge"];
+	
 	
 	return forbiddenPaths;
 }
