@@ -1517,11 +1517,13 @@ int main(int argc, char **argv, char **envp) {
 		if (recursive){
 			
 			NSFileManager *fileman=[[NSFileManager alloc ] init];
-			NSError *error;
-			[fileman createDirectoryAtPath:outputDir withIntermediateDirectories:YES attributes:nil error:&error];
-			if (error){
-				NSLog(@"Could not create directory %@. Check permissions.",outputDir);
-				exit(EXIT_FAILURE);
+			NSError *error = nil;
+			if (![fileman fileExistsAtPath:outputDir]) {
+				[fileman createDirectoryAtPath:outputDir withIntermediateDirectories:YES attributes:nil error:&error];
+				if (error){
+					NSLog(@"Could not create directory %@. Check permissions.",outputDir);
+					exit(EXIT_FAILURE);
+				}
 			}
 			[fileman changeCurrentDirectoryPath:currentDir];
 			[fileman changeCurrentDirectoryPath:outputDir];
@@ -1538,14 +1540,16 @@ int main(int argc, char **argv, char **envp) {
 		else{
 			if (image){
 				
-				NSError *error;
+				NSError *error = nil;
 				NSFileManager *fileman=[[NSFileManager alloc ] init];	
 				NSString *imageString=nil;	
 				if (outputDir){
-					[fileman createDirectoryAtPath:outputDir withIntermediateDirectories:YES attributes:nil error:&error];
-					if (error){
-						NSLog(@"Could not create directory %@. Check permissions.",outputDir);
-						exit(EXIT_FAILURE);
+					if (![fileman fileExistsAtPath:outputDir]) {
+						[fileman createDirectoryAtPath:outputDir withIntermediateDirectories:YES attributes:nil error:&error];
+						if (error){
+							NSLog(@"Could not create directory %@. Check permissions.",outputDir);
+							exit(EXIT_FAILURE);
+						}
 					}
 					[fileman changeCurrentDirectoryPath:currentDir];
 					[fileman changeCurrentDirectoryPath:outputDir];
