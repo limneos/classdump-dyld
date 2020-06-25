@@ -10,6 +10,10 @@
 
 +(id)cd_signatureWithObjCTypes:(const char *)types{
   
+    //CDLog(@"cd_signatureWithObjCTypes");
+    if (types == NULL ) return nil;
+    
+    //fprintf(stderr, "types: %s\n", types);
 	__block NSString *text=[NSString stringWithCString:types encoding:NSUTF8StringEncoding]; 
 
  	while ([text rangeOfString:@"("].location!=NSNotFound){
@@ -19,6 +23,8 @@
 		// test if the anticipated union (embraced in parentheseis) is actually a function definition rather than a union
 		
 		NSRange range=[text rangeOfString:@"\\(([^\\(\\)]+)\\)" options:NSRegularExpressionSearch];
+        CDLog(@"range: %@", NSStringFromRange(range));
+        if (range.location == NSNotFound) return nil;
 		NSString *rep=[text substringWithRange:range];
 		NSString *testUnion=[rep stringByReplacingOccurrencesOfString:@"(" withString:@"{"]; //just to test if it internally passes as a masqueraded struct
 		testUnion=[testUnion stringByReplacingOccurrencesOfString:@")" withString:@"}"];
@@ -28,7 +34,8 @@
 			text=[text stringByReplacingOccurrencesOfString:@")" withString:@"__FUNCTION_END__"];
 			continue;
 		}
-	 	
+	 	CDLog(@"33: enumerating matches in string: %@", text);
+        if (text == nil) return nil;
 		[regex enumerateMatchesInString:text options:0 
 								  range:NSMakeRange(0, [text length]) 
 							 usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
@@ -85,8 +92,8 @@
 -(const char *)cd_getArgumentTypeAtIndex:(int)anIndex{
 	
 	const char *argument= [self getArgumentTypeAtIndex:anIndex];
-
-	NSString *char_ns=[NSString stringWithCString:argument encoding:NSUTF8StringEncoding];
+    if (argument == NULL ) return nil;
+    NSString *char_ns=[NSString stringWithCString:argument encoding:NSUTF8StringEncoding];
 	__block NSString *text=char_ns;
 	if ([text rangeOfString:@"^^^"].location!=NSNotFound){
 		text=[text stringByReplacingOccurrencesOfString:@"^^^" withString:@""];
@@ -95,6 +102,7 @@
 	while ([text rangeOfString:@"{union"].location!=NSNotFound){
         
         NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"(\\{union.+?ficificifloc\\})" options:nil error:nil];
+        CDLog(@"100: enumerating matches in string: %@", text);
 		[regex enumerateMatchesInString:text options:0 
                                   range:NSMakeRange(0, [text length]) 
                              usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
@@ -125,7 +133,7 @@
 /****** Properties Parser ******/
 
 NSString * propertyLineGenerator(NSString *attributes,NSString *name){
-	
+	//CDLog(@"propertyLineGenerator");
 	NSCharacterSet *parSet=[NSCharacterSet characterSetWithCharactersInString:@"()"];
 	attributes=[attributes stringByTrimmingCharactersInSet:parSet];
 	NSMutableArray *attrArr=(NSMutableArray *)[attributes componentsSeparatedByString:@","];
@@ -229,7 +237,7 @@ NSString * propertyLineGenerator(NSString *attributes,NSString *name){
 /****** Properties Combined Array (for fixing non-matching types)   ******/
 
 static NSMutableArray * propertiesArrayFromString(NSString *propertiesString){
-
+    //CDLog(@"propertiesArrayFromString");
 	NSMutableArray *propertiesExploded=[[propertiesString componentsSeparatedByString:@"\n"] mutableCopy];
 	NSMutableArray *typesAndNamesArray=[NSMutableArray array];
 
@@ -275,10 +283,11 @@ static NSMutableArray * propertiesArrayFromString(NSString *propertiesString){
 /****** Protocol Parser ******/
 
 NSString * buildProtocolFile(Protocol *currentProtocol){
-	
+	//CDLog(@"buildProtocolFile");
 	NSMutableString * protocolsMethodsString=[[NSMutableString alloc] init];
-
-	NSString *protocolName=[NSString stringWithCString:protocol_getName(currentProtocol) encoding:NSUTF8StringEncoding];
+    const char *protName = protocol_getName(currentProtocol);
+    if (protName == NULL) return nil;
+    NSString *protocolName=[NSString stringWithCString:protocol_getName(currentProtocol) encoding:NSUTF8StringEncoding];
 	[protocolsMethodsString appendString:[NSString stringWithFormat:@"\n@protocol %@",protocolName]];
 	NSMutableArray *classesInProtocol=[[NSMutableArray alloc] init];
 	
@@ -308,8 +317,8 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 			const char *propname=property_getName(protPropertyList[xi]);
 			const char *attrs=property_getAttributes(protPropertyList[xi]);
 		
-		
-			NSCharacterSet *parSet=[NSCharacterSet characterSetWithCharactersInString:@"()"];
+            NSCharacterSet *parSet=[NSCharacterSet characterSetWithCharactersInString:@"()"];
+            if (attrs == NULL) continue;
 			NSString *attributes=[[NSString stringWithCString:attrs encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:parSet];
 			NSMutableArray *attrArr=(NSMutableArray *)[attributes componentsSeparatedByString:@","];
 			NSString *type=[attrArr objectAtIndex:0] ;
@@ -324,7 +333,9 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 					[classesInProtocol addObject:classFoundInProperties];
 				}
 			}
-				
+		    if (propname == NULL){
+                propname = "";
+            }
 			NSString *newString=propertyLineGenerator([NSString stringWithCString:attrs encoding:NSUTF8StringEncoding],[NSString stringWithCString:propname encoding:NSUTF8StringEncoding]);
 			if ([protPropertiesString rangeOfString:newString].location==NSNotFound){
 				[protPropertiesString appendString:newString];
@@ -360,8 +371,9 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 				NSString *finString=@"";
 				//CDLog(@"\t\t\t\tAbout to call cd_signatureWithObjCTypes of current protocol with types: %s",types);
 				NSMethodSignature *signature=[NSMethodSignature cd_signatureWithObjCTypes:types];
-				//CDLog(@"\t\t\t\tGot cd_signatureWithObjCTypes of current protocol");			
-				NSString *returnType=commonTypes([NSString stringWithCString:[signature methodReturnType] encoding:NSUTF8StringEncoding],nil,NO);
+				//CDLog(@"\t\t\t\tGot cd_signatureWithObjCTypes of current protocol");
+                if (signature == nil) continue;
+                NSString *returnType=commonTypes([NSString stringWithCString:[signature methodReturnType] encoding:NSUTF8StringEncoding],nil,NO);
 
 				NSArray *selectorsArray=[protSelector componentsSeparatedByString:@":"];
 				if (selectorsArray.count>1){
@@ -369,7 +381,7 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 					for (unsigned ad=2;ad<[signature numberOfArguments]; ad++){	
 						argCount++;
 						NSString *space=ad==[signature numberOfArguments]-1 ? @"" : @" ";
-						finString=[finString stringByAppendingString:[NSString stringWithFormat:@"%@:(%@)arg%d%@" ,[selectorsArray objectAtIndex:ad-2],commonTypes([NSString stringWithCString:[signature cd_getArgumentTypeAtIndex:ad] encoding:NSUTF8StringEncoding],nil,NO),argCount,space]];
+                        finString=[finString stringByAppendingString:[NSString stringWithFormat:@"%@:(%@)arg%d%@" ,[selectorsArray objectAtIndex:ad-2],commonTypes([NSString stringWithCString:[signature cd_getArgumentTypeAtIndex:ad] encoding:NSUTF8StringEncoding],nil,NO),argCount,space]];
 					}				
 				}
 				else{
@@ -435,7 +447,7 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 		[classesFoundToAdd appendString:finalString];
 		[finalString release];
 		finalString=[classesFoundToAdd mutableCopy];
-		[classesFoundToAdd release];		
+		[classesFoundToAdd release];
 	}
 	[classesInProtocol release];
 	[protocolsMethodsString release];
@@ -446,7 +458,7 @@ NSString * buildProtocolFile(Protocol *currentProtocol){
 
 
 static BOOL hasMalformedID(NSString *parts){
-	
+	//CDLog(@"hasMalformedID");
 	if  ([parts rangeOfString:@"@\""].location!=NSNotFound && [parts rangeOfString:@"@\""].location+2<parts.length-1 &&  ([[parts substringFromIndex:[parts rangeOfString:@"@\""].location+2] rangeOfString:@"\""].location==[[parts substringFromIndex:[parts rangeOfString:@"@\""].location+2] rangeOfString:@"\"\""].location || [[parts substringFromIndex:[parts rangeOfString:@"@\""].location+2] rangeOfString:@"\""].location==[[parts substringFromIndex:[parts rangeOfString:@"@\""].location+2] rangeOfString:@"\"]"].location  || [[parts substringFromIndex:[parts rangeOfString:@"@\""].location+2] rangeOfString:@"\""].location==[parts substringFromIndex:[parts rangeOfString:@"@\""].location+2].length-1)){
 		return YES;
 	}
@@ -459,8 +471,16 @@ static BOOL hasMalformedID(NSString *parts){
 
 
 static NSString *representedStructFromStruct(NSString *inStruct,NSString *inName, BOOL inIvarList,BOOL isFinal){
-
-
+    //CDLog(@"representedStructFromStruct: %@ name: %@ inVarList: %d, isFinal: %d", inStruct, inName, inIvarList, isFinal);
+    
+    @try {
+        //NSLog(@"#### HERE: %@", inStruct);
+    } @catch (NSException *exception) {
+         //NSLog(@"#### WE DIED HERE: %@", exception);
+         return nil;
+    }
+   
+    
 	if ([inStruct rangeOfString:@"\""].location==NSNotFound){ // not an ivar type struct, it has the names of types in quotes
 
 		if ([inStruct rangeOfString:@"{?="].location==0){
@@ -476,13 +496,27 @@ static NSString *representedStructFromStruct(NSString *inStruct,NSString *inName
 					return [dict objectForKey:@"name"]; 
 				}
 			}
-			
+			//NSLog(@"#### HERE?? 2");
 			__block NSMutableArray *strctArray=[NSMutableArray array];
 
+            
+            /*
+             
+             Dumping /System/Library/PrivateFrameworks/ProVideo.framework/ProVideo...(211 classes)
+             88% [============================================      ]  186/211 <OZFxPlugParameterHandlerUIUpdate>
+             2018-07-28 14:15:49.774 classdump-dyld[1611:670482] *** Terminating app due to uncaught exception 'NSInvalidArgumentException', reason: '*** -[NSRegularExpression enumerateMatchesInString:options:range:usingBlock:]: nil argument'
+             *** First throw call stack:
+             (0x18830d120 0x1875045ec 0x18830d000 0x188c868a8 0x1005a8694 0x1005a4164 0x1005a5574 0x1005aeac8 0x1005b350c 0x187c7144c)
+             Abort trap: 6
+              - crah is traced to 505- not sure why yet.
+             */
+            
 			while ([types rangeOfString:@"{"].location!=NSNotFound){
 			
 				NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\{([^\\{^\\}]+)\\}" options:NSRegularExpressionCaseInsensitive error:nil];
 				__block NSString *blParts;
+                CDLog(@"511 enumerating matches in string: %@", types);
+                if (types == nil || [types isEqualToString:@"(?=d{})QQddQ"] || [types isEqualToString:@"{?=BQ^{}}"]) return nil;
 				[regex enumerateMatchesInString:types options:0 
 							   range:NSMakeRange(0, [types length]) 
 							 usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
@@ -501,7 +535,7 @@ static NSString *representedStructFromStruct(NSString *inStruct,NSString *inName
 
 				types=blParts;
 			}
-	
+            //NSLog(@"#### HERE?? 3");
 			NSMutableArray *alreadyFoundStructs=[NSMutableArray array];
 			for (NSDictionary *dict in allStructsFound){
 
@@ -533,14 +567,14 @@ static NSString *representedStructFromStruct(NSString *inStruct,NSString *inName
 				}
 			}
 	
-
+            //NSLog(@"#### HERE?? 4");
 			__block NSMutableArray *arrArray=[NSMutableArray array];
 
 			while ([types rangeOfString:@"["].location!=NSNotFound){
 
 				NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\[([^\\[^\\]]+)\\]" options:NSRegularExpressionCaseInsensitive error:nil];
 				__block NSString *blParts2;
-
+                CDLog(@"569: enumerating matches in string: %@", types);
 				[regex enumerateMatchesInString:types options:0 
 							   range:NSMakeRange(0, [types length]) 
 							 usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
@@ -563,13 +597,14 @@ static NSString *representedStructFromStruct(NSString *inStruct,NSString *inName
 
 				types=blParts2;
 			}
-
+            //NSLog(@"#### HERE?? 5");
 			__block NSMutableArray *bitArray=[NSMutableArray array];
 
 			while ([types rangeOfString:@"b1"].location!=NSNotFound || [types rangeOfString:@"b2"].location!=NSNotFound || [types rangeOfString:@"b3"].location!=NSNotFound || [types rangeOfString:@"b4"].location!=NSNotFound || [types rangeOfString:@"b5"].location!=NSNotFound || [types rangeOfString:@"b6"].location!=NSNotFound || [types rangeOfString:@"b7"].location!=NSNotFound || [types rangeOfString:@"b8"].location!=NSNotFound || [types rangeOfString:@"b9"].location!=NSNotFound){
 
 			NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"(b[0-9]+)" options:nil error:nil];
 				__block NSString *blParts3;
+                 CDLog(@"599: enumerating matches in string: %@", types);
 				[regex enumerateMatchesInString:types options:0 
 							   range:NSMakeRange(0, [types length]) 
 							 usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
@@ -646,8 +681,12 @@ static NSString *representedStructFromStruct(NSString *inStruct,NSString *inName
 				types=[types stringByReplacingCharactersInRange:NSMakeRange(loc,1) withString:[alreadyFoundStructs objectAtIndex:fCounter4]];
 				
 			}
-			
+			//NSLog(@"###### are we bout to die here?? typee: -%@-", types);
 			NSString *whatIBuilt=[NSString stringWithFormat:@"{?=%@}",types];
+			//NSLog(@"###### whatIBuilt: -%@-", whatIBuilt);
+            if ([whatIBuilt isEqualToString:@"{?=}"]){
+                return whatIBuilt;
+            }
 			NSString *whatIReturn=representedStructFromStruct(whatIBuilt,nil,NO,YES);    		
 			return whatIReturn;
 		
@@ -669,7 +708,7 @@ static NSString *representedStructFromStruct(NSString *inStruct,NSString *inName
 		}
 		
 	}
-	
+	//NSLog(@"#### HERE?? 6");
 	int firstBrace=[inStruct rangeOfString:@"{"].location;
 	int ison=[inStruct rangeOfString:@"="].location;
 	NSString *structName=[inStruct substringWithRange:NSMakeRange(firstBrace+1,ison-1)];
@@ -801,6 +840,7 @@ static NSString *representedStructFromStruct(NSString *inStruct,NSString *inName
 			
 			NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\{([^\\{^\\}]+)\\}" options:NSRegularExpressionCaseInsensitive error:nil];
 			__block NSString *blParts;
+            CDLog(@"835: enumerating matches in string: %@", parts);
 			[regex enumerateMatchesInString:parts options:0 
 							  range:NSMakeRange(0, [parts length]) 
 						 usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
@@ -827,7 +867,7 @@ static NSString *representedStructFromStruct(NSString *inStruct,NSString *inName
 
 
 NSString *representedUnionFromUnion(NSString *inUnion){
-
+    //CDLog(@"representedUnionFromUnion");
 	if ([inUnion rangeOfString:@"\""].location==NSNotFound){
 
 
@@ -872,6 +912,7 @@ NSString *representedUnionFromUnion(NSString *inUnion){
 
 			NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\(([^\\(^\\)]+)\\)" options:NSRegularExpressionCaseInsensitive error:nil];
 			__block NSString *unionParts;
+            CDLog(@"907: enumerating matches in string: %@", parts);
 			[regex enumerateMatchesInString:parts options:0 
 							  range:NSMakeRange(0, [parts length]) 
 						 usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
@@ -893,6 +934,7 @@ NSString *representedUnionFromUnion(NSString *inUnion){
        			
 			NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\{([^\\{^\\}]+)\\}" options:NSRegularExpressionCaseInsensitive error:nil];
 			__block NSString *structParts;
+            CDLog(@"929: enumerating matches in string: %@", parts);
 			[regex enumerateMatchesInString:parts options:0 
 							  range:NSMakeRange(0, [parts length]) 
 						 usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
@@ -999,7 +1041,8 @@ NSString *representedUnionFromUnion(NSString *inUnion){
 /****** Generic Types Parser ******/
 
 NSString * commonTypes(NSString *atype,NSString **inName,BOOL inIvarList){
-	
+	 //CDLog(@"commonTypes: %@", atype);
+    if (atype == nil) return @"";
 	BOOL isRef=NO;
 	BOOL isPointer=NO;
 	BOOL isCArray=NO;
@@ -1079,7 +1122,8 @@ NSString * commonTypes(NSString *atype,NSString **inName,BOOL inIvarList){
 			while ([tempString rangeOfString:@"["].location!=NSNotFound){
 
 				NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"(\\[([^\\[^\\]]+)\\])" options:nil error:nil];
-
+                CDLog(@"1117: enumerating matches in string: %@", tempString);
+                if (tempString == nil) return nil;
         		[regex enumerateMatchesInString:tempString options:0 
             	                      range:NSMakeRange(0, [tempString length]) 
                 	             usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) 
@@ -1265,7 +1309,7 @@ NSString * commonTypes(NSString *atype,NSString **inName,BOOL inIvarList){
 		atype=[@"oneway " stringByAppendingString:atype];
 	}
 
-
+    //CDLog(@"ct end");
 	return atype;
 
 }
@@ -1273,7 +1317,7 @@ NSString * commonTypes(NSString *atype,NSString **inName,BOOL inIvarList){
 /****** Methods Parser ******/
 
 NSString * generateMethodLines(Class someclass,BOOL isInstanceMethod,NSMutableArray *propertiesArray){
-
+    //CDLog(@"generateMethodLines");
 	unsigned int outCount;
 
 	NSString *returnString=@"";
@@ -1287,8 +1331,9 @@ NSString * generateMethodLines(Class someclass,BOOL isInstanceMethod,NSMutableAr
 		char * returnType=method_copyReturnType(currentMethod);
 		const char *selectorName=sel_getName(sele);
 		NSString *returnTypeSameAsProperty=nil;
-		NSString *SelectorNameNS=[NSString stringWithCString:selectorName encoding:NSUTF8StringEncoding] ;
-		if ([SelectorNameNS rangeOfString:@"."].location==0){ //.cxx.destruct etc
+        if (selectorName == NULL) continue;
+        NSString *SelectorNameNS=[NSString stringWithCString:selectorName encoding:NSUTF8StringEncoding] ;
+        if ([SelectorNameNS rangeOfString:@"."].location==0){ //.cxx.destruct etc
 			continue;
 		}
 		for (NSDictionary *dict in propertiesArray){
@@ -1300,7 +1345,12 @@ NSString * generateMethodLines(Class someclass,BOOL isInstanceMethod,NSMutableAr
 		}
 		NSString *startSign=isInstanceMethod ? @"-" : @"+";
 		
-		NSString *startTypes=returnTypeSameAsProperty ? [NSString stringWithFormat:@"\n%@(%@)",startSign,returnTypeSameAsProperty] : [NSString stringWithFormat:@"\n%@(%@)",startSign,commonTypes([NSString stringWithCString:returnType encoding:NSUTF8StringEncoding],nil,NO)];
+        NSString *returnTypes = nil;
+        if (returnType != nil){
+         returnTypes = [NSString stringWithCString:returnType encoding:NSUTF8StringEncoding];
+        }
+        
+		NSString *startTypes=returnTypeSameAsProperty ? [NSString stringWithFormat:@"\n%@(%@)",startSign,returnTypeSameAsProperty] : [NSString stringWithFormat:@"\n%@(%@)",startSign,commonTypes(returnTypes,nil,NO)];
 		[returnTypeSameAsProperty release];
 		free(returnType);
 
@@ -1329,7 +1379,6 @@ NSString * generateMethodLines(Class someclass,BOOL isInstanceMethod,NSMutableAr
                     //fixes a crash, probably needs a more proper solution
                     if (selValuesArray.count > 1)
                     {
-                        
                         returnString=[[[returnString autorelease] stringByAppendingString:[NSString stringWithFormat:@"%@:(%@)arg%d ",[selValuesArray objectAtIndex:i-2],commonTypes([NSString stringWithCString:methodType encoding:NSUTF8StringEncoding],nil,NO),i-1]] retain];
                     }
 				}

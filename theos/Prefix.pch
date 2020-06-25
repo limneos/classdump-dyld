@@ -1,0 +1,55 @@
+#ifdef DEBUG
+	#define __DEBUG__
+#endif
+
+#ifdef __OBJC__
+	#import <_Prefix/NullabilityCompat.h>
+
+	#if __has_feature(modules)
+		@import Foundation;
+	#else
+		#import <Foundation/Foundation.h>
+	#endif
+
+	#ifdef TARGET_OS_SIMULATOR
+		#define _THEOS_IS_SIMULATOR TARGET_OS_SIMULATOR
+	#else
+		#define _THEOS_IS_SIMULATOR TARGET_IPHONE_SIMULATOR
+	#endif
+
+	#if TARGET_IPHONE || _THEOS_IS_SIMULATOR
+		#if __has_feature(modules)
+			@import UIKit;
+		#else
+			#import <UIKit/UIKit.h>
+			
+		#endif
+
+		#import <_Prefix/IOSWebKitCompatHacks.h>
+	#endif
+
+	#if TARGET_MACOSX
+		#if __has_feature(modules)
+			@import Cocoa;
+			@import AppKit;
+		#else
+			#import <Cocoa/Cocoa.h>
+			#import <AppKit/AppKit.h>
+		#endif
+	#endif
+
+	#import <_Prefix/HBLog.h>
+	#import <_Prefix/IOSMacros.h>
+	#define NB [NSBundle mainBundle]
+	#define UD [NSUserDefaults standardUserDefaults]
+	#define FM [NSFileManager defaultManager]
+#endif
+
+#ifndef __clang__
+#import <Availability.h>
+#undef NS_AVAILABLE
+#define NS_AVAILABLE(osx, ios)
+#undef __OSX_AVAILABLE_STARTING
+#define __OSX_AVAILABLE_STARTING(osx, ios)
+#include <stdbool.h>
+#endif

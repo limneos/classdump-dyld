@@ -94,7 +94,7 @@ static BOOL priorToiOS7(){
 NSMutableArray * generateForbiddenClassesArray(BOOL isRecursive){
 		
 	forbiddenClasses=[[NSMutableArray alloc] init];
-
+    [forbiddenClasses addObject:@"JTImageView"];
 	if (priorToiOS7()){
 		[forbiddenClasses addObject:@"VKRoadGroup"];
 		[forbiddenClasses addObject:@"SBApplication"];
@@ -109,6 +109,9 @@ NSMutableArray * generateForbiddenClassesArray(BOOL isRecursive){
 		[forbiddenClasses addObject:@"UICollectionViewData"];
 	}
 
+    [forbiddenClasses addObject:@"PBAttentionMonitor"]; //FIXME: ditto
+    [forbiddenClasses addObject:@"SleepSM"]; //FIXME: in PineBoard i really want those complete!!
+    [forbiddenClasses addObject:@"_UISearchBarVisualProviderIOS"];
 	//iWork related crashing classes
 	[forbiddenClasses addObject:@"KNSlideStyle"];
 	[forbiddenClasses addObject:@"TSWPListStyle"];
@@ -185,6 +188,7 @@ NSMutableArray * generateForbiddenClassesArray(BOOL isRecursive){
 	[forbiddenClasses addObject:@"TSTTableInfo"];
 	[forbiddenClasses addObject:@"TSCHReferenceLineStyle"];
 	[forbiddenClasses addObject:@"AZSharedUserDefaults"];
+    [forbiddenClasses addObject:@"BWAudioFormat"];
 	
 	
 	return forbiddenClasses;
@@ -331,6 +335,23 @@ NSMutableArray * generateForbiddenPathsArray(BOOL isRecursive){
 	if (priorToiOS7()){
 		[forbiddenPaths addObject:@"/System/Library/Frameworks/PassKit.framework/passd"];
 	}
+    [forbiddenPaths addObject:@"FMCore.framework"];
+    [forbiddenPaths addObject:@"PencilPairingUI.framework"];
+    [forbiddenPaths addObject:@"AGXMetalA8.bundle"];
+    /*
+    [forbiddenPaths addObject:@"TVHomeSharing.app"]; //UGHHHHH
+    [forbiddenPaths addObject:@"TVIdleScreen.app"];
+    [forbiddenPaths addObject:@"TVMovies.app"];
+    [forbiddenPaths addObject:@"TVDisplayAssistant.app"];
+    [forbiddenPaths addObject:@"TVDiagnostics.app"];
+    [forbiddenPaths addObject:@"TVAirPlay.app"];
+    [forbiddenPaths addObject:@"TVGameCenterUIService.app"];
+    [forbiddenPaths addObject:@"TVConferenceRoomDisplay.app"];
+     */
+    /*
+    [forbiddenPaths addObject:@"Intents.framework"];
+    [forbiddenPaths addObject:@"AttentionAwareness.framework"];
+    [forbiddenPaths addObject:@"MetalTools.framework"];
 	[forbiddenPaths addObject:@"AGXMetal"];
 	[forbiddenPaths addObject:@"PhotosUI"];
 	[forbiddenPaths addObject:@"AccessibilityUIService"];
@@ -343,6 +364,30 @@ NSMutableArray * generateForbiddenPathsArray(BOOL isRecursive){
 	[forbiddenPaths addObject:@"Parsec"];
 	[forbiddenPaths addObject:@"ZoomTouch"];
 	[forbiddenPaths addObject:@"VisualVoicemailUsage"];
+   // [forbiddenPaths addObject:@"SpriteKit.framework"];
+     [forbiddenPaths addObject:@"Celestial.framework"];
+    [forbiddenPaths addObject:@"ProVideo.framework"];
+    [forbiddenPaths addObject:@"SpringBoardUI.framework"];
+    [forbiddenPaths addObject:@"PowerlogCore.framework"];
+    [forbiddenPaths addObject:@"PowerlogAccounting.framework"];
+    [forbiddenPaths addObject:@"PowerlogControl.framework"];
+    [forbiddenPaths addObject:@"PowerlogDatabaseReader.framework"];
+    [forbiddenPaths addObject:@"PowerlogFullOperators.framework"];
+    [forbiddenPaths addObject:@"PowerlogHelperdOperators.framework"];
+    [forbiddenPaths addObject:@"PowerlogLiteOperators.framework"];
+    [forbiddenPaths addObject:@"AssetViewer.framework"];
+    [forbiddenPaths addObject:@"CameraEffectsKit.framework"];
+    [forbiddenPaths addObject:@"PencilPairingUI.framework"];
+    [forbiddenPaths addObject:@"AppAnalytics.framework"];
+    [forbiddenPaths addObject:@"Vision.framework"];
+    [forbiddenPaths addObject:@"SiriUICore.framework"];
+    [forbiddenPaths addObject:@"CoreKnowledge.framework"];
+    //[forbiddenPaths addObject:@"AppStoreKit.framework"];
+    [forbiddenPaths addObject:@"CloudKitCode.framework"];
+    [forbiddenPaths addObject:@"FMClient.framework"];
+    [forbiddenPaths addObject:@"PodcastsKit.framework"];
+    //[forbiddenPaths addObject:@"CloudPhotoLibrary.framework"];
+    */
 	if (isRecursive){
 		[forbiddenPaths addObject:@"braille"];
 		[forbiddenPaths addObject:@"QuickSpeak"];
@@ -356,7 +401,7 @@ NSMutableArray * generateForbiddenPathsArray(BOOL isRecursive){
 
 
 int locationOfString(const char *haystack, const char *needle){
-	char * found = strstr( haystack, needle );
+	const char * found = strstr( haystack, needle );
 	int anIndex=-1;
 	if (found != NULL){
 	  anIndex = found - haystack;
