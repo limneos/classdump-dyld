@@ -1473,6 +1473,9 @@ int main(int argc, char **argv, char **envp) {
 				else if ([[NSFileManager defaultManager] fileExistsAtPath:@"/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64"]){
 					filename="/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64";
 				}
+                else if ([[NSFileManager defaultManager] fileExistsAtPath:@"/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64e"]){
+                    filename="/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64e";
+                }
 				else if([[NSFileManager defaultManager] fileExistsAtPath:@"/System/Library/Caches/com.apple.dyld/dyld_shared_cache_armv7s"]){
 					filename="/System/Library/Caches/com.apple.dyld/dyld_shared_cache_armv7s";
 				}
@@ -1517,12 +1520,14 @@ int main(int argc, char **argv, char **envp) {
 		if (recursive){
 			
 			NSFileManager *fileman=[[NSFileManager alloc ] init];
-			NSError *error;
-			[fileman createDirectoryAtPath:outputDir withIntermediateDirectories:YES attributes:nil error:&error];
-			if (error){
-				NSLog(@"Could not create directory %@. Check permissions.",outputDir);
-				exit(EXIT_FAILURE);
-			}
+			NSError *error = nil;
+            if (![fileman fileExistsAtPath:outputDir]) {
+                [fileman createDirectoryAtPath:outputDir withIntermediateDirectories:YES attributes:nil error:&error];
+                if (error){
+                    NSLog(@"Could not create directory %@. Check permissions.",outputDir);
+                    exit(EXIT_FAILURE);
+                }
+            }
 			[fileman changeCurrentDirectoryPath:currentDir];
 			[fileman changeCurrentDirectoryPath:outputDir];
 			outputDir=[fileman currentDirectoryPath];
@@ -1538,15 +1543,17 @@ int main(int argc, char **argv, char **envp) {
 		else{
 			if (image){
 				
-				NSError *error;
+                NSError *error = nil;
 				NSFileManager *fileman=[[NSFileManager alloc ] init];	
 				NSString *imageString=nil;	
 				if (outputDir){
-					[fileman createDirectoryAtPath:outputDir withIntermediateDirectories:YES attributes:nil error:&error];
-					if (error){
-						NSLog(@"Could not create directory %@. Check permissions.",outputDir);
-						exit(EXIT_FAILURE);
-					}
+					if (![fileman fileExistsAtPath:outputDir]) {
+                        [fileman createDirectoryAtPath:outputDir withIntermediateDirectories:YES attributes:nil error:&error];
+                        if (error){
+                            NSLog(@"Could not create directory %@. Check permissions.",outputDir);
+                            exit(EXIT_FAILURE);
+                        }
+                    }
 					[fileman changeCurrentDirectoryPath:currentDir];
 					[fileman changeCurrentDirectoryPath:outputDir];
 					outputDir=[fileman currentDirectoryPath];
